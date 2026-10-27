@@ -1,0 +1,678 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>สั่งทำปากแตรไอดี</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Sarabun:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap">
+<style>
+  :root{
+    --bg:#f1efe9; --surface:#ffffff; --surface-2:#e7e3da; --surface-3:#ddd8cc;
+    --fg:#1b1a17; --muted:#6c675d; --border:#d8d2c5;
+    --accent:#c75a1e; --accent-ink:#fff6ee; --accent-2:#2f5d9e;
+    --good:#2c7a4b; --bad:#b3261e; --warn:#9a6a12;
+    --shadow: 0 1px 2px rgba(25,20,10,.06), 0 10px 24px -14px rgba(25,20,10,.25);
+    --radius: 14px; color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#131315; --surface:#1b1b1e; --surface-2:#232327; --surface-3:#2b2b30;
+      --fg:#efece6; --muted:#9a968c; --border:#333338;
+      --accent:#ff8a3d; --accent-ink:#1a1308; --accent-2:#6e9fe0;
+      --good:#49b579; --bad:#ff7b72; --warn:#e0ab4a;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 14px 32px -16px rgba(0,0,0,.6); color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#131315; --surface:#1b1b1e; --surface-2:#232327; --surface-3:#2b2b30;
+    --fg:#efece6; --muted:#9a968c; --border:#333338;
+    --accent:#ff8a3d; --accent-ink:#1a1308; --accent-2:#6e9fe0;
+    --good:#49b579; --bad:#ff7b72; --warn:#e0ab4a;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 14px 32px -16px rgba(0,0,0,.6); color-scheme: dark;
+  }
+  *{ box-sizing:border-box; }
+  body{ margin:0; background:var(--bg); color:var(--fg); font-family:'Sarabun','Noto Sans Thai',sans-serif; line-height:1.55; }
+  h1,h2,.disp{ font-family:'Chakra Petch','Noto Sans Thai',sans-serif; text-wrap:balance; }
+  .mono{ font-family:'JetBrains Mono',ui-monospace,monospace; font-variant-numeric:tabular-nums; }
+  :focus-visible{ outline:2px solid var(--accent); outline-offset:2px; border-radius:6px; }
+  [hidden]{ display:none!important; }
+  .shell{ max-width:1180px; margin:0 auto; padding-left:max(16px, env(safe-area-inset-left,0px)); padding-right:max(16px, env(safe-area-inset-right,0px)); }
+
+  header.top{ border-bottom:1px solid var(--border); background:var(--surface); position:sticky; top:0; z-index:20; }
+  header.top .shell{ padding-block:12px; display:flex; align-items:center; gap:12px; justify-content:space-between; flex-wrap:wrap; }
+  .brand{ display:flex; align-items:center; gap:10px; min-width:0; }
+  .brand .mark{ width:34px; height:34px; border-radius:10px; flex:none; background:linear-gradient(135deg,var(--accent),var(--accent-2)); }
+  .brand .name{ font-weight:700; font-size:1.05rem; }
+  .brand .sub{ color:var(--muted); font-size:.82rem; }
+  .theme-btn{ font:inherit; font-family:'Chakra Petch',sans-serif; font-size:.8rem; font-weight:600; background:var(--surface-2); color:var(--fg); border:1px solid var(--border); border-radius:999px; padding:7px 14px; cursor:pointer; }
+
+  main{ padding-block:22px 56px; }
+  .intro{ max-width:64ch; margin-bottom:20px; }
+  .intro h1{ font-size:clamp(1.45rem,3vw,1.95rem); margin:0 0 6px; }
+  .intro p{ color:var(--muted); margin:0; }
+  .grid{ display:grid; grid-template-columns:minmax(280px,430px) 1fr; gap:22px; align-items:start; }
+  @media (max-width:880px){ .grid{ grid-template-columns:1fr; } }
+  .card{ background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); padding:18px; }
+
+  .preview-pane{ position:sticky; top:76px; }
+  @media (max-width:880px){ .preview-pane{ position:static; } }
+  .plate{ border-radius:12px; overflow:hidden; position:relative; aspect-ratio:3/4; touch-action:none;
+    background:radial-gradient(120% 140% at 30% 15%, color-mix(in srgb, var(--accent) 12%, var(--surface-2)), var(--surface-2) 60%); border:1px solid var(--border); }
+  @media (max-width:880px){ .plate{ aspect-ratio:4/3; } }
+  .plate canvas{ display:block; width:100%; height:100%; }
+  .plate .hint{ position:absolute; left:10px; bottom:10px; font-size:.74rem; color:var(--muted); background:color-mix(in srgb,var(--surface) 80%,transparent); padding:4px 9px; border-radius:999px; border:1px solid var(--border); }
+  .specline{ display:flex; flex-wrap:wrap; gap:6px 12px; margin-top:12px; font-size:.84rem; }
+  .price-tile{ margin-top:12px; background:var(--surface-2); border:1px solid var(--border); border-radius:10px; padding:12px 14px; }
+  .price-tile .lbl{ font-size:.78rem; color:var(--muted); display:block; }
+  .price-tile .val{ font-size:1.35rem; font-weight:700; }
+  .price-tile .note{ font-size:.74rem; color:var(--muted); display:block; margin-top:2px; }
+
+  .section-title{ font-size:.78rem; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); font-weight:600; margin:0 0 10px; }
+  fieldset{ border:0; padding:0; margin:0 0 22px; }
+  .row2{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  @media (max-width:480px){ .row2{ grid-template-columns:1fr; } }
+  .field{ margin-bottom:12px; }
+  .field label{ display:block; font-size:.84rem; font-weight:600; margin-bottom:5px; }
+  .field .small{ font-weight:400; color:var(--muted); font-size:.78rem; }
+  .help{ font-size:.78rem; color:var(--muted); margin-top:4px; }
+  input[type=text], input[type=tel], input[type=number], select, textarea{
+    width:100%; font:inherit; font-size:.95rem; color:var(--fg); background:var(--surface-2);
+    border:1px solid var(--border); border-radius:9px; padding:9px 11px; }
+  textarea{ resize:vertical; min-height:60px; }
+  .num-row{ display:flex; gap:10px; align-items:center; }
+  .num-row input[type=range]{ flex:1; accent-color:var(--accent); }
+  .num-row input[type=number]{ width:92px; flex:none; text-align:right; }
+  .unit{ color:var(--muted); font-size:.82rem; }
+
+  .chips{ display:flex; gap:8px; flex-wrap:wrap; }
+  .chip{ font:inherit; font-size:.86rem; font-weight:600; border:1px solid var(--border); background:var(--surface-2); color:var(--fg); border-radius:999px; padding:7px 14px; cursor:pointer; display:flex; align-items:center; gap:7px; }
+  .chip[aria-pressed="true"]{ outline:2px solid var(--accent); outline-offset:1px; background:var(--surface); }
+  .chip .dot{ width:16px; height:16px; border-radius:50%; border:1px solid rgba(0,0,0,.2); flex:none; }
+
+  .issues{ margin:0 0 14px; padding:10px 12px; border-radius:10px; font-size:.86rem; list-style:none; }
+  .issues.bad{ background:color-mix(in srgb,var(--bad) 10%,var(--surface)); border:1px solid color-mix(in srgb,var(--bad) 40%,transparent); color:var(--bad); }
+  .issues li{ margin:2px 0; }
+  .note-box{ font-size:.82rem; color:var(--warn); background:color-mix(in srgb,var(--warn) 10%,var(--surface)); border:1px solid color-mix(in srgb,var(--warn) 35%,transparent); border-radius:10px; padding:8px 11px; margin-top:6px; }
+
+  .btn{ font:inherit; font-family:'Chakra Petch',sans-serif; font-weight:600; font-size:.95rem; border-radius:10px; padding:12px 18px; cursor:pointer; border:1px solid transparent; }
+  .btn-primary{ background:var(--accent); color:var(--accent-ink); width:100%; }
+  .btn-primary[disabled]{ opacity:.5; cursor:not-allowed; }
+  .btn-ghost{ background:var(--surface-2); color:var(--fg); border-color:var(--border); }
+  .btn-sm{ padding:7px 12px; font-size:.82rem; }
+
+  .done{ text-align:center; padding:8px 4px; }
+  .done .ref{ font-size:1.6rem; font-weight:700; margin:6px 0; }
+  .mine{ margin-top:26px; }
+  .tablewrap{ overflow-x:auto; border:1px solid var(--border); border-radius:10px; }
+  table{ border-collapse:collapse; width:100%; min-width:640px; font-size:.84rem; }
+  thead th{ text-align:left; font-family:'Chakra Petch',sans-serif; font-size:.74rem; color:var(--muted); background:var(--surface-2); padding:9px 10px; border-bottom:1px solid var(--border); white-space:nowrap; }
+  tbody td{ padding:9px 10px; border-bottom:1px solid var(--border); white-space:nowrap; }
+  tbody tr:last-child td{ border-bottom:0; }
+  .fineprint{ margin-top:22px; font-size:.8rem; color:var(--muted); border-top:1px dashed var(--border); padding-top:14px; }
+  .toast{ position:fixed; left:50%; bottom:calc(env(safe-area-inset-bottom,0px) + 18px); transform:translate(-50%,12px); background:var(--fg); color:var(--bg); font-size:.86rem; font-weight:600; padding:10px 18px; border-radius:999px; opacity:0; pointer-events:none; transition:opacity .2s, transform .2s; z-index:50; max-width:calc(100% - 32px); text-align:center; }
+  .toast.show{ opacity:1; transform:translate(-50%,0); }
+  @media (prefers-reduced-motion:reduce){ .toast{ transition:none; } }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="shell">
+    <div class="brand">
+      <div class="mark" aria-hidden="true"></div>
+      <div>
+        <div class="name" id="shopName">สั่งทำปากแตรไอดี</div>
+        <div class="sub">เลือกขนาด ดูตัวอย่าง 3 มิติ แล้วส่งคำสั่งซื้อ</div>
+      </div>
+    </div>
+    <button class="theme-btn" id="themeToggle" type="button" aria-pressed="false">โหมดมืด</button>
+  </div>
+</header>
+
+<main class="shell">
+  <div class="intro">
+    <h1>ปากแตรไอดี ทำตามขนาดเรือนลิ้นเร่งของคุณ</h1>
+    <p>กรอกขนาดเรือนลิ้นเร่ง ความยาว ขนาดปาก แบบครีบ และข้อความสลัก ดูตัวอย่าง 3 มิติได้ทันที แล้วกดส่งคำสั่งซื้อ ร้านจะติดต่อกลับเพื่อยืนยันราคาและวันส่ง</p>
+  </div>
+
+  <div class="grid">
+    <section class="card preview-pane" aria-label="ตัวอย่าง 3 มิติ">
+      <div class="plate" id="plate">
+        <canvas id="canvas"></canvas>
+        <div class="hint">ลากเพื่อหมุนดู</div>
+      </div>
+      <div class="specline mono" id="specline"></div>
+      <div class="price-tile">
+        <span class="lbl">ราคาประมาณ</span>
+        <span class="val mono" id="priceTile">฿0</span>
+        <span class="note" id="priceNote">ราคาต่อชิ้น · ร้านยืนยันราคาจริงก่อนผลิต</span>
+      </div>
+    </section>
+
+    <section class="card" aria-label="รายละเอียดคำสั่งซื้อ">
+      <form id="orderForm" novalidate>
+        <fieldset>
+          <p class="section-title">ขนาดเรือนลิ้นเร่ง</p>
+          <div class="row2">
+            <div class="field">
+              <label for="fTbOut">Ø นอกเรือนลิ้นเร่ง <span class="small">(ปากสวม)</span></label>
+              <div class="num-row"><input type="number" id="fTbOut" step="0.01" inputmode="decimal"><span class="unit">มม.</span></div>
+            </div>
+            <div class="field">
+              <label for="fTbIn">Ø ในเรือนลิ้นเร่ง <span class="small">(รูไอดี)</span></label>
+              <div class="num-row"><input type="number" id="fTbIn" step="0.01" inputmode="decimal"><span class="unit">มม.</span></div>
+            </div>
+          </div>
+          <p class="help">วัดด้วยเวอร์เนียร์ที่ปลายเรือนลิ้นเร่ง ถ้าไม่แน่ใจ ใส่รุ่นรถด้านล่าง ร้านจะเช็กให้</p>
+        </fieldset>
+
+        <fieldset>
+          <p class="section-title">ขนาดปากแตร</p>
+          <div class="field">
+            <label for="fLenR">ความยาวปากแตร <span class="small">(วัดจากปลายเรือนลิ้นเร่งถึงขอบปาก)</span></label>
+            <div class="num-row">
+              <input type="range" id="fLenR" aria-label="ความยาว (สไลด์)">
+              <input type="number" id="fLen" step="0.5" inputmode="decimal" aria-label="ความยาว (มม.)"><span class="unit">มม.</span>
+            </div>
+          </div>
+          <div class="field">
+            <label for="fMouthR">Ø นอกสุดที่ปาก</label>
+            <div class="num-row">
+              <input type="range" id="fMouthR" aria-label="Ø ปาก (สไลด์)">
+              <input type="number" id="fMouth" step="0.5" inputmode="decimal" aria-label="Ø ปาก (มม.)"><span class="unit">มม.</span>
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <p class="section-title">ครีบเกลียวด้านใน</p>
+          <div class="chips" id="styleChips" role="group" aria-label="แบบครีบ">
+            <button type="button" class="chip" data-v="NONE">ไม่มีครีบ</button>
+            <button type="button" class="chip" data-v="RIB">สันนูนด้านใน</button>
+            <button type="button" class="chip" data-v="FLUTE">ร่องเกลียว (ผนังเป็นลอน)</button>
+          </div>
+          <div id="ribOpts">
+            <div class="row2" style="margin-top:12px">
+              <div class="field">
+                <label for="fRibN">จำนวนครีบ</label>
+                <div class="num-row"><input type="number" id="fRibN" step="1" inputmode="numeric"><span class="unit">ครีบ</span></div>
+              </div>
+              <div class="field">
+                <label for="fTwist">มุมบิด</label>
+                <div class="num-row"><input type="number" id="fTwist" step="5" inputmode="numeric"><span class="unit">องศา</span></div>
+              </div>
+            </div>
+            <div class="chips" id="dirChips" role="group" aria-label="ทิศบิด">
+              <button type="button" class="chip" data-v="CCW">บิดทวนเข็ม</button>
+              <button type="button" class="chip" data-v="CW">บิดตามเข็ม</button>
+            </div>
+            <p class="help">ทิศบิดมองจากปากแตรลงไปหาเรือนลิ้นเร่ง</p>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <p class="section-title">ข้อความสลัก</p>
+          <div class="field">
+            <label for="fText">ข้อความ <span class="small">(ไทยหรืออังกฤษ ไม่บังคับ)</span></label>
+            <input type="text" id="fText" autocomplete="off">
+            <div class="help" id="textHelp"></div>
+            <div class="note-box" id="fluteTextNote" hidden>แบบร่องเกลียวไม่มีที่สลักข้อความ ข้อความจะไม่ถูกใส่</div>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <p class="section-title">สีและจำนวน</p>
+          <div class="chips" id="colorChips" role="group" aria-label="สี"></div>
+          <div class="row2" style="margin-top:12px">
+            <div class="field">
+              <label for="fQty">จำนวน</label>
+              <div class="num-row"><input type="number" id="fQty" min="1" step="1" inputmode="numeric"><span class="unit">ชิ้น</span></div>
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <p class="section-title">ข้อมูลติดต่อ</p>
+          <div class="row2">
+            <div class="field">
+              <label for="fName">ชื่อ / ร้าน</label>
+              <input type="text" id="fName" autocomplete="name">
+            </div>
+            <div class="field">
+              <label for="fContact">เบอร์โทร หรือ LINE ID</label>
+              <input type="text" id="fContact" autocomplete="tel">
+            </div>
+          </div>
+          <div class="field">
+            <label for="fBike">รุ่นรถ / รุ่นเรือนลิ้นเร่ง <span class="small">(ไม่บังคับ)</span></label>
+            <input type="text" id="fBike" placeholder="เช่น Honda Forza 300">
+          </div>
+          <div class="field">
+            <label for="fNote">หมายเหตุ <span class="small">(ไม่บังคับ)</span></label>
+            <textarea id="fNote"></textarea>
+          </div>
+          <!-- honeypot: real people leave this empty -->
+          <div style="position:absolute;left:-9999px" aria-hidden="true">
+            <label for="fWebsite">Website</label><input type="text" id="fWebsite" tabindex="-1" autocomplete="off">
+          </div>
+        </fieldset>
+
+        <ul class="issues bad" id="issues" hidden></ul>
+        <button type="submit" class="btn btn-primary" id="submitBtn">ส่งคำสั่งซื้อ</button>
+        <p class="help" id="offlineNote" hidden>ร้านยังไม่ได้ตั้งค่าระบบรับออเดอร์ (ORDER_URL ว่าง) ปุ่มนี้จะบันทึกไว้ในเครื่องนี้เท่านั้น</p>
+      </form>
+
+      <div class="done" id="doneBox" hidden>
+        <p class="section-title">ส่งคำสั่งซื้อแล้ว</p>
+        <div class="ref mono" id="doneRef"></div>
+        <p>เก็บเลขนี้ไว้ ร้านจะติดต่อกลับทาง <b id="doneContact"></b></p>
+        <button type="button" class="btn btn-ghost" id="againBtn">สั่งอีกชิ้น</button>
+      </div>
+    </section>
+  </div>
+
+  <section class="card mine" aria-label="คำสั่งซื้อของฉัน" id="mineCard" hidden>
+    <p class="section-title">คำสั่งซื้อที่ส่งจากเครื่องนี้</p>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>เลขออเดอร์</th><th>วันที่</th><th>ขนาด</th><th>ครีบ</th><th>ข้อความ</th><th>สี</th><th>จำนวน</th><th>ราคาประมาณ</th></tr></thead>
+        <tbody id="mineBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <p class="fineprint">ตัวอย่าง 3 มิติเป็นภาพประมาณเพื่อช่วยเลือกแบบ ไฟล์ผลิตจริงสร้างจาก SolidWorks ตามขนาดที่กรอก ราคาที่แสดงเป็นราคาประมาณ ร้านจะยืนยันราคาและขนาดก่อนผลิตทุกครั้ง</p>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.149.0/three.min.js"></script>
+<script>
+/* ======================= ร้านตั้งค่าตรงนี้ ======================= */
+var CONFIG = {
+  ORDER_URL: 'https://script.google.com/macros/s/AKfycbwMaUqS6OVl01wv93ioEuG3OIEDOkmPCb0bAFKmb1Dts3_rnLYR8XqDiQCYvRuYMLQ/exec',   // URL ของ Apps Script Web App (ดู README.md ขั้นที่ 2)
+  SHOP_NAME: 'สั่งทำปากแตรไอดี',
+  // ค่าเริ่มต้นในฟอร์ม (Forza-02)
+  START: { tbOut:48.83, tbIn:43.59, len:105, mouth:114, style:'RIB', ribN:8, twist:90, dir:'CCW', qty:1 },
+  // ช่วงที่ยอมให้กรอก (ให้ตรงกับเครื่องปริ้นและ Macro)
+  LIMITS: { tbIn:[30,70], tbOutMinGap:2, tbOutMaxGap:20, len:[60,200], mouth:[50,160],
+            ribN:[2,24], twist:[0,180], maxHeight:230, textMax:20, qty:[1,50] },
+  // ค่าวิศวกรรมที่ร้านใช้ใน Excel (ใช้เช็กและวาดตัวอย่างเท่านั้น)
+  ENG: { T_WALL:3, LIP_EXTRA:2, SOCKET_L:10, SOCKET_CH:0.5, RIB_H:3, FLEX_TRIM1:11, WRAP_Z:33.6, WRAP_H_TH:7 },
+  COLORS: [
+    { id:'black', label:'ดำ',     hex:'#1d1d1f' },
+    { id:'white', label:'ขาว',    hex:'#ecebe7' },
+    { id:'grey',  label:'เทา',    hex:'#7d8086' },
+    { id:'red',   label:'แดง',    hex:'#c3262b' },
+    { id:'blue',  label:'น้ำเงิน', hex:'#2c56a8' }
+  ],
+  // สูตรราคาประมาณ (บาท/ชิ้น)
+  PRICE: { base:250, perMmLen:1.5, perMmMouth:1.0, rib:60, flute:150, text:50, round:10 }
+};
+/* =============================================================== */
+
+(function(){
+  "use strict";
+  var $ = function(id){ return document.getElementById(id); };
+  document.title = CONFIG.SHOP_NAME;
+  $('shopName').textContent = CONFIG.SHOP_NAME;
+
+  /* ---------- theme ---------- */
+  var root = document.documentElement, themeBtn = $('themeToggle');
+  function applyTheme(t){
+    if (t) root.setAttribute('data-theme', t); else root.removeAttribute('data-theme');
+    var dark = t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    themeBtn.textContent = dark ? 'โหมดสว่าง' : 'โหมดมืด';
+    themeBtn.setAttribute('aria-pressed', String(dark));
+  }
+  var savedTheme = null;
+  try { savedTheme = localStorage.getItem('vs-theme'); } catch(e){}
+  applyTheme(savedTheme);
+  themeBtn.addEventListener('click', function(){
+    var next = themeBtn.getAttribute('aria-pressed') === 'true' ? 'light' : 'dark';
+    applyTheme(next);
+    try { localStorage.setItem('vs-theme', next); } catch(e){}
+  });
+
+  var toastEl = $('toast'), toastTimer = null;
+  function toast(msg){
+    toastEl.textContent = msg; toastEl.classList.add('show');
+    clearTimeout(toastTimer); toastTimer = setTimeout(function(){ toastEl.classList.remove('show'); }, 2800);
+  }
+
+  /* ---------- form state ---------- */
+  var L = CONFIG.LIMITS, S = CONFIG.START;
+  var state = { style:S.style, dir:S.dir, color:CONFIG.COLORS[0].id };
+  $('fTbOut').value = S.tbOut; $('fTbIn').value = S.tbIn;
+  $('fLen').value = S.len; $('fMouth').value = S.mouth;
+  $('fRibN').value = S.ribN; $('fTwist').value = S.twist; $('fQty').value = S.qty;
+  $('fText').maxLength = L.textMax;
+
+  function linkRange(rangeId, numId, lim){
+    var r = $(rangeId), n = $(numId);
+    r.min = lim[0]; r.max = lim[1]; r.step = 0.5; r.value = n.value;
+    r.addEventListener('input', function(){ n.value = r.value; update(); });
+    n.addEventListener('input', function(){ r.value = n.value; update(); });
+  }
+  linkRange('fLenR', 'fLen', L.len);
+  linkRange('fMouthR', 'fMouth', L.mouth);
+  ['fTbOut','fTbIn','fRibN','fTwist','fText','fQty'].forEach(function(id){ $(id).addEventListener('input', update); });
+
+  function wireChips(wrapId, key){
+    var wrap = $(wrapId);
+    function paint(){ Array.prototype.forEach.call(wrap.children, function(b){ b.setAttribute('aria-pressed', String(b.dataset.v === state[key])); }); }
+    Array.prototype.forEach.call(wrap.children, function(b){
+      b.addEventListener('click', function(){ state[key] = b.dataset.v; paint(); update(); });
+    });
+    paint();
+  }
+  CONFIG.COLORS.forEach(function(c){
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'chip'; b.dataset.v = c.id;
+    b.innerHTML = '<span class="dot" style="background:' + c.hex + '"></span>' + c.label;
+    $('colorChips').appendChild(b);
+  });
+  wireChips('styleChips', 'style');
+  wireChips('dirChips', 'dir');
+  wireChips('colorChips', 'color');
+
+  function num(id){ var v = parseFloat($(id).value); return isFinite(v) ? v : NaN; }
+  function colorOf(id){ for (var i = 0; i < CONFIG.COLORS.length; i++) if (CONFIG.COLORS[i].id === id) return CONFIG.COLORS[i]; return CONFIG.COLORS[0]; }
+  function hasThai(s){ return /[฀-๿]/.test(s); }
+  // same estimate as the macro (TextWidth): Thai 0.85h, Latin 0.65h, space 0.3h, Thai marks 0
+  function textWidth(s, h){
+    var w = 0;
+    for (var i = 0; i < s.length; i++){
+      var c = s.charCodeAt(i);
+      if (c === 32) w += 0.3 * h;
+      else if (c === 0x0E31 || (c >= 0x0E34 && c <= 0x0E3A) || (c >= 0x0E47 && c <= 0x0E4E)) {}
+      else if (c >= 0x0E00 && c <= 0x0E7F) w += 0.85 * h;
+      else w += 0.65 * h;
+    }
+    return w;
+  }
+
+  function readOrder(){
+    var style = state.style;
+    return {
+      D_TB_OUT: num('fTbOut'), D_TB_IN: num('fTbIn'), HORN_L: num('fLen'), D_OUT_TOP: num('fMouth'),
+      RIB_STYLE: style === 'NONE' ? 'RIB' : style,
+      RIB_N: style === 'NONE' ? 0 : Math.round(num('fRibN')),
+      FLEX_ANG: style === 'NONE' ? 0 : num('fTwist'),
+      TWIST_DIR: state.dir,
+      WRAP_TEXT_IN: style === 'FLUTE' ? '' : $('fText').value.trim(),
+      styleChoice: style,
+      color: state.color, qty: Math.round(num('fQty')),
+      customer: $('fName').value.trim(), contact: $('fContact').value.trim(),
+      bike: $('fBike').value.trim(), note: $('fNote').value.trim(),
+      website: $('fWebsite').value
+    };
+  }
+
+  // same rules as the Excel "CHECK" column and the macro (Apps Script repeats them)
+  function validate(o, forSubmit){
+    var e = [], E = CONFIG.ENG, lip = E.T_WALL + E.LIP_EXTRA;
+    function bad(v){ return !isFinite(v); }
+    if (bad(o.D_TB_IN) || o.D_TB_IN < L.tbIn[0] || o.D_TB_IN > L.tbIn[1]) e.push('Ø ในเรือนลิ้นเร่ง ต้องอยู่ระหว่าง ' + L.tbIn[0] + '–' + L.tbIn[1] + ' มม.');
+    if (bad(o.D_TB_OUT) || o.D_TB_OUT < o.D_TB_IN + L.tbOutMinGap) e.push('Ø นอกเรือนลิ้นเร่ง ต้องโตกว่า Ø ใน อย่างน้อย ' + L.tbOutMinGap + ' มม.');
+    else if (o.D_TB_OUT > o.D_TB_IN + L.tbOutMaxGap) e.push('Ø นอก ต่างจาก Ø ใน เกิน ' + L.tbOutMaxGap + ' มม. ลองวัดใหม่');
+    if (bad(o.HORN_L) || o.HORN_L < L.len[0] || o.HORN_L > L.len[1]) e.push('ความยาวต้องอยู่ระหว่าง ' + L.len[0] + '–' + L.len[1] + ' มม.');
+    if (bad(o.D_OUT_TOP) || o.D_OUT_TOP < L.mouth[0] || o.D_OUT_TOP > L.mouth[1]) e.push('Ø ปากต้องอยู่ระหว่าง ' + L.mouth[0] + '–' + L.mouth[1] + ' มม.');
+    else if (isFinite(o.D_TB_IN) && o.D_OUT_TOP / 2 - lip / 2 <= o.D_TB_IN / 2 + E.T_WALL + 5) e.push('Ø ปากเล็กเกินไป ต้องโตกว่าประมาณ ' + Math.ceil(o.D_TB_IN + 2 * E.T_WALL + 10 + lip) + ' มม.');
+    var h = E.SOCKET_CH + E.SOCKET_L + (o.HORN_L || 0);
+    if (h > L.maxHeight) e.push('สูงรวม ' + h.toFixed(0) + ' มม. เกินเครื่องปริ้น (' + L.maxHeight + ' มม.)');
+    if (o.styleChoice !== 'NONE'){
+      if (bad(o.RIB_N) || o.RIB_N < L.ribN[0] || o.RIB_N > L.ribN[1]) e.push('จำนวนครีบต้องอยู่ระหว่าง ' + L.ribN[0] + '–' + L.ribN[1]);
+      if (bad(o.FLEX_ANG) || o.FLEX_ANG < L.twist[0] || o.FLEX_ANG > L.twist[1]) e.push('มุมบิดต้องอยู่ระหว่าง ' + L.twist[0] + '–' + L.twist[1] + ' องศา');
+    }
+    if (o.WRAP_TEXT_IN.length > L.textMax) e.push('ข้อความยาวเกิน ' + L.textMax + ' ตัวอักษร');
+    if (bad(o.qty) || o.qty < L.qty[0] || o.qty > L.qty[1]) e.push('จำนวนต้องอยู่ระหว่าง ' + L.qty[0] + '–' + L.qty[1] + ' ชิ้น');
+    if (forSubmit){
+      if (!o.customer) e.push('กรอกชื่อ / ร้าน');
+      if (!o.contact) e.push('กรอกเบอร์โทรหรือ LINE ID');
+    }
+    return e;
+  }
+
+  function price(o){
+    var P = CONFIG.PRICE, each = P.base + (o.HORN_L || 0) * P.perMmLen + (o.D_OUT_TOP || 0) * P.perMmMouth;
+    if (o.styleChoice === 'RIB') each += P.rib;
+    if (o.styleChoice === 'FLUTE') each += P.flute;
+    if (o.WRAP_TEXT_IN) each += P.text;
+    each = Math.round(each / P.round) * P.round;
+    var q = isFinite(o.qty) && o.qty > 0 ? o.qty : 1;
+    return { each: each, total: each * q };
+  }
+
+  function update(){
+    var o = readOrder();
+    $('ribOpts').hidden = o.styleChoice === 'NONE';
+    $('fluteTextNote').hidden = !(o.styleChoice === 'FLUTE' && $('fText').value.trim());
+    // text size hint (mirrors the macro: Thai >= 7 mm, shrinks if longer than 45% of the neck)
+    var t = o.WRAP_TEXT_IN, help = '';
+    if (t){
+      var hgt = hasThai(t) ? CONFIG.ENG.WRAP_H_TH : 3.5;
+      var rT = (o.D_TB_IN || 40) / 2 + CONFIG.ENG.T_WALL;
+      var w = textWidth(t, hgt), wmax = 0.9 * Math.PI * rT;
+      if (w > wmax){ hgt = hgt * wmax / w; w = wmax; }
+      help = 'ตัวอักษรสูงประมาณ ' + hgt.toFixed(1) + ' มม. ยาวประมาณ ' + w.toFixed(0) + ' มม.' +
+             (hasThai(t) && hgt < CONFIG.ENG.WRAP_H_TH - 0.05 ? ' · ข้อความยาว ตัวอักษรจะเล็กลง แนะนำให้สั้นลง' : '');
+    }
+    $('textHelp').textContent = help;
+    var errs = validate(o, false);
+    var list = $('issues');
+    list.innerHTML = errs.map(function(s){ return '<li>' + s + '</li>'; }).join('');
+    list.hidden = errs.length === 0;
+    var p = price(o);
+    $('priceTile').textContent = '฿' + p.each.toLocaleString('th-TH') + (o.qty > 1 ? ' × ' + o.qty + ' = ฿' + p.total.toLocaleString('th-TH') : '');
+    $('specline').innerHTML = [
+      'ปากสวม Ø' + fmt(o.D_TB_OUT), 'รู Ø' + fmt(o.D_TB_IN), 'ยาว ' + fmt(o.HORN_L), 'ปาก Ø' + fmt(o.D_OUT_TOP),
+      o.styleChoice === 'NONE' ? 'ไม่มีครีบ' : (o.RIB_N + (o.styleChoice === 'FLUTE' ? ' ร่อง' : ' ครีบ') + ' บิด ' + fmt(o.FLEX_ANG) + '°')
+    ].join(' · ');
+    if (!errs.length) rebuild(o);
+  }
+  function fmt(v){ return isFinite(v) ? (Math.round(v * 100) / 100) : '–'; }
+
+  /* ---------- 3D preview (approximate, same curve as the macro) ---------- */
+  var canvas = $('canvas'), plate = $('plate');
+  var renderer, scene, camera, group, body, ribs = [], textMesh, matBody, matRib;
+  var rotY = 0.6, dragging = false, lastX = 0, autoSpin = !window.matchMedia('(prefers-reduced-motion: reduce)').matches, idle = null;
+
+  function geom(o){
+    var E = CONFIG.ENG, T = E.T_WALL, lipR = (T + E.LIP_EXTRA) / 2;
+    var g = { T:T, rSi:o.D_TB_OUT/2, rSo:o.D_TB_OUT/2 + T, rBore:o.D_TB_IN/2, rWo:o.D_TB_IN/2 + T,
+              zSh:E.SOCKET_CH + E.SOCKET_L };
+    g.zTop = g.zSh + o.HORN_L; g.lipR = lipR; g.rc = o.D_OUT_TOP/2 - lipR; g.zc = g.zTop - lipR;
+    g.r0c = g.rBore + T/2; g.zW0 = g.zSh;
+    return g;
+  }
+  function centerPts(g, p, q){
+    var A = g.rc - g.r0c, B = g.zc - g.zW0, pts = [], N = 60;
+    for (var i = 0; i <= N; i++){
+      var s = i / N, u = 1 - Math.pow(1 - s, 1.5), w = Math.max(0, 1 - Math.pow(u, p));
+      pts.push([g.rc - A * Math.pow(w, 1 / q), g.zW0 + B * u]);
+    }
+    return pts;
+  }
+  function offset(pts, d){
+    var n = pts.length, out = [];
+    for (var i = 0; i < n; i++){
+      var a = pts[Math.max(i - 1, 0)], b = pts[Math.min(i + 1, n - 1)];
+      var tx = b[0] - a[0], ty = b[1] - a[1], L2 = Math.hypot(tx, ty) || 1;
+      out.push([pts[i][0] - d * ty / L2, pts[i][1] + d * tx / L2]);
+    }
+    return out;
+  }
+  function minBend(p){
+    var best = 1e30;
+    for (var i = 1; i < p.length - 1; i++){
+      var a = Math.hypot(p[i][0]-p[i-1][0], p[i][1]-p[i-1][1]), b = Math.hypot(p[i+1][0]-p[i][0], p[i+1][1]-p[i][1]);
+      var c = Math.hypot(p[i+1][0]-p[i-1][0], p[i+1][1]-p[i-1][1]);
+      var ar = Math.abs((p[i][0]-p[i-1][0])*(p[i+1][1]-p[i-1][1]) - (p[i][1]-p[i-1][1])*(p[i+1][0]-p[i-1][0])) / 2;
+      if (ar > 1e-9) best = Math.min(best, a * b * c / (4 * ar));
+    }
+    return best;
+  }
+
+  function rebuild(o){
+    if (!scene) return;
+    var g = geom(o), p = 2, q = 2;
+    while (minBend(centerPts(g, p, q)) < g.T / 2 + 2 && p < 30) p *= 1.2;      // like FixCurve
+    var cen = centerPts(g, p, q), outer = offset(cen, -g.T / 2), inner = offset(cen, g.T / 2);
+    var prof = [[g.rSi + 0.5, 0], [g.rSo, 0], [g.rSo, g.zSh + g.T]];
+    outer.forEach(function(v){ if (v[1] > g.zSh + g.T) prof.push(v); });
+    for (var a = -90; a <= 270; a += 15){                                      // lip roll
+      var rad = a * Math.PI / 180; prof.push([g.rc + g.lipR * Math.cos(rad), g.zc + g.lipR * Math.sin(rad)]);
+    }
+    for (var i = inner.length - 1; i >= 0; i--) prof.push(inner[i]);
+    prof.push([g.rBore, g.zSh], [g.rSi, g.zSh], [g.rSi, 0.5], [g.rSi + 0.5, 0]);
+    var S = 1 / 25, zMid = g.zTop / 2;
+    var v2 = prof.map(function(v){ return new THREE.Vector2(Math.max(v[0], 0.01) * S, (v[1] - zMid) * S); });
+    if (body){ group.remove(body); body.geometry.dispose(); }
+    body = new THREE.Mesh(new THREE.LatheGeometry(v2, 72), matBody);
+    group.add(body);
+    matBody.color.set(colorOf(o.color).hex);
+    matRib.color.set(colorOf(o.color).hex);
+
+    ribs.forEach(function(m){ group.remove(m); m.geometry.dispose(); }); ribs = [];
+    if (o.styleChoice !== 'NONE' && o.RIB_N >= 1){
+      var surf = o.styleChoice === 'FLUTE' ? offset(cen, -g.T / 2 - 0.6) : offset(cen, g.T / 2 + 0.6);
+      var zEnd = g.zTop - 8, trim = CONFIG.ENG.FLEX_TRIM1, sign = o.TWIST_DIR === 'CW' ? -1 : 1;
+      for (var k = 0; k < o.RIB_N; k++){
+        var th0 = 2 * Math.PI * k / o.RIB_N, path = [];
+        surf.forEach(function(v){
+          if (v[1] < g.zSh + 3 || v[1] > zEnd) return;
+          var tw = sign * (o.FLEX_ANG * Math.PI / 180) * Math.max(0, Math.min(1, (v[1] - trim) / (g.zTop - trim)));
+          var th = th0 + tw;
+          path.push(new THREE.Vector3(v[0] * Math.cos(th) * S, (v[1] - zMid) * S, v[0] * Math.sin(th) * S));
+        });
+        if (path.length < 2) continue;
+        var tube = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(path), 80, 1.1 * S, 6, false), matRib);
+        group.add(tube); ribs.push(tube);
+      }
+    }
+    drawText(o, g, outer, S, zMid);
+    fitCamera(g, S);
+  }
+
+  var tCanvas = document.createElement('canvas'); tCanvas.width = 1024; tCanvas.height = 128;
+  var tCtx = tCanvas.getContext('2d'), tTex = null;
+  function drawText(o, g, outer, S, zMid){
+    if (textMesh){ group.remove(textMesh); textMesh.geometry.dispose(); textMesh = null; }
+    var t = o.WRAP_TEXT_IN; if (!t || !tTex) return;
+    var E = CONFIG.ENG, h = hasThai(t) ? E.WRAP_H_TH : 3.5, r = g.rWo;
+    var w = textWidth(t, h), wmax = 0.9 * Math.PI * r;
+    if (w > wmax){ h *= wmax / w; w = wmax; }
+    var z = Math.max(E.WRAP_Z, g.zSh + g.T + 6 + 0.4 * h);
+    tCtx.clearRect(0, 0, 1024, 128);
+    tCtx.fillStyle = '#f3efe6'; tCtx.textAlign = 'center'; tCtx.textBaseline = 'middle';
+    tCtx.font = '700 84px Sarabun, sans-serif';
+    tCtx.fillText(t, 512, 66, 1000);
+    tTex.needsUpdate = true;
+    var arc = (w + 6) / r, bandH = h * 1.9;
+    var geo = new THREE.CylinderGeometry((r + 0.3) * S, (r + 0.3) * S, bandH * S, 64, 1, true, Math.PI / 2 - arc / 2, arc);
+    textMesh = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ map:tTex, transparent:true, depthWrite:false, side:THREE.DoubleSide }));
+    textMesh.position.y = (z + h * 0.35 - zMid) * S;
+    group.add(textMesh);
+  }
+
+  function fitCamera(g, S){
+    var halfH = g.zTop / 2 * S, maxR = Math.max(g.rc + g.lipR, g.rSo) * S;
+    var vfov = camera.fov * Math.PI / 180 / 2, hfov = Math.atan(Math.tan(vfov) * camera.aspect);
+    var d = Math.max(halfH / Math.tan(vfov), maxR / Math.tan(hfov), 2) * 1.5;
+    // from above, so the ribs inside the mouth are visible
+    camera.position.set(0, halfH + d * 0.55, d * 0.85); camera.lookAt(0, -halfH * 0.15, 0);
+  }
+
+  function initThree(){
+    if (typeof THREE === 'undefined') { plate.querySelector('.hint').textContent = 'โหลดตัวอย่าง 3 มิติไม่ได้'; return; }
+    renderer = new THREE.WebGLRenderer({ canvas:canvas, antialias:true, alpha:true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    scene = new THREE.Scene();
+    camera = new THREE.PerspectiveCamera(35, 1, 0.1, 200);
+    group = new THREE.Group(); scene.add(group);
+    scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+    var key = new THREE.DirectionalLight(0xffffff, 1.0); key.position.set(3, 5, 6); scene.add(key);
+    var rim = new THREE.DirectionalLight(0x9fb8ff, 0.5); rim.position.set(-4, -2, -3); scene.add(rim);
+    matBody = new THREE.MeshStandardMaterial({ color:0x1d1d1f, metalness:0.05, roughness:0.75, side:THREE.DoubleSide });
+    matRib = new THREE.MeshStandardMaterial({ color:0x1d1d1f, metalness:0.05, roughness:0.7 });
+    tTex = new THREE.CanvasTexture(tCanvas); tTex.minFilter = THREE.LinearFilter;
+    canvas.addEventListener('pointerdown', function(e){ dragging = true; autoSpin = false; lastX = e.clientX; canvas.setPointerCapture(e.pointerId); clearTimeout(idle); });
+    canvas.addEventListener('pointermove', function(e){ if (!dragging) return; rotY += (e.clientX - lastX) * 0.01; lastX = e.clientX; });
+    function end(){ dragging = false; clearTimeout(idle); idle = setTimeout(function(){ autoSpin = !window.matchMedia('(prefers-reduced-motion: reduce)').matches; }, 1800); }
+    canvas.addEventListener('pointerup', end); canvas.addEventListener('pointercancel', end);
+    window.addEventListener('resize', resize);
+    resize();
+    (function loop(){ requestAnimationFrame(loop); if (autoSpin) rotY += 0.004; group.rotation.y = rotY; renderer.render(scene, camera); })();
+  }
+  function resize(){
+    if (!renderer) return;
+    var w = plate.clientWidth, h = plate.clientHeight; if (!w || !h) return;
+    renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); update();
+  }
+
+  /* ---------- submit ---------- */
+  var MINE_KEY = 'vs-my-orders-v1';
+  function loadMine(){ try { return JSON.parse(localStorage.getItem(MINE_KEY) || '[]'); } catch(e){ return []; } }
+  function saveMine(list){ try { localStorage.setItem(MINE_KEY, JSON.stringify(list)); } catch(e){} }
+  function renderMine(){
+    var list = loadMine();
+    $('mineCard').hidden = list.length === 0;
+    $('mineBody').innerHTML = list.slice().reverse().map(function(r){
+      return '<tr><td class="mono">' + esc(r.ref) + '</td><td>' + esc(new Date(r.date).toLocaleDateString('th-TH')) + '</td>' +
+        '<td class="mono">' + esc(r.size) + '</td><td>' + esc(r.style) + '</td><td>' + esc(r.text || '—') + '</td>' +
+        '<td>' + esc(r.color) + '</td><td class="mono">' + r.qty + '</td><td class="mono">฿' + Number(r.total).toLocaleString('th-TH') + '</td></tr>';
+    }).join('');
+  }
+  function esc(s){ return String(s).replace(/[&<>"']/g, function(c){ return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]; }); }
+
+  $('offlineNote').hidden = !!CONFIG.ORDER_URL;
+  $('orderForm').addEventListener('submit', function(ev){
+    ev.preventDefault();
+    var o = readOrder(), errs = validate(o, true);
+    if (errs.length){
+      $('issues').innerHTML = errs.map(function(s){ return '<li>' + s + '</li>'; }).join('');
+      $('issues').hidden = false; $('issues').scrollIntoView({ behavior:'smooth', block:'center' });
+      return;
+    }
+    var p = price(o);
+    var payload = {
+      customer:o.customer, contact:o.contact, bike:o.bike, note:o.note, qty:o.qty,
+      color:colorOf(o.color).label, priceEach:p.each, priceTotal:p.total, website:o.website,
+      D_TB_OUT:o.D_TB_OUT, D_TB_IN:o.D_TB_IN, HORN_L:o.HORN_L, D_OUT_TOP:o.D_OUT_TOP,
+      RIB_STYLE:o.RIB_STYLE, RIB_N:o.RIB_N, FLEX_ANG:o.FLEX_ANG, TWIST_DIR:o.TWIST_DIR, WRAP_TEXT_IN:o.WRAP_TEXT_IN
+    };
+    var btn = $('submitBtn'); btn.disabled = true; btn.textContent = 'กำลังส่ง...';
+    function finish(ref){
+      var mine = loadMine();
+      mine.push({ ref:ref, date:new Date().toISOString(), size:'Ø' + o.D_TB_OUT + '/' + o.D_TB_IN + ' ยาว ' + o.HORN_L + ' ปาก Ø' + o.D_OUT_TOP,
+        style: o.styleChoice === 'NONE' ? 'ไม่มีครีบ' : (o.RIB_N + (o.styleChoice === 'FLUTE' ? ' ร่อง' : ' ครีบ')),
+        text:o.WRAP_TEXT_IN, color:colorOf(o.color).label, qty:o.qty, total:p.total });
+      saveMine(mine); renderMine();
+      $('orderForm').hidden = true; $('doneBox').hidden = false;
+      $('doneRef').textContent = ref; $('doneContact').textContent = o.contact;
+      btn.disabled = false; btn.textContent = 'ส่งคำสั่งซื้อ';
+    }
+    if (!CONFIG.ORDER_URL){ finish('LOCAL-' + Date.now().toString(36).toUpperCase()); toast('บันทึกในเครื่องนี้ (ร้านยังไม่ได้ตั้งค่าระบบรับออเดอร์)'); return; }
+    // text/plain body = no CORS preflight; Apps Script answers with JSON
+    fetch(CONFIG.ORDER_URL, { method:'POST', body:JSON.stringify(payload) })
+      .then(function(r){ return r.json(); })
+      .then(function(res){
+        if (!res.ok) throw new Error(res.error || 'ส่งไม่สำเร็จ');
+        finish(res.ref); toast('ส่งคำสั่งซื้อแล้ว');
+      })
+      .catch(function(err){
+        btn.disabled = false; btn.textContent = 'ส่งคำสั่งซื้อ';
+        $('issues').innerHTML = '<li>ส่งไม่สำเร็จ: ' + esc(err.message) + ' ลองใหม่อีกครั้ง หรือติดต่อร้านโดยตรง</li>';
+        $('issues').hidden = false;
+      });
+  });
+  $('againBtn').addEventListener('click', function(){ $('doneBox').hidden = true; $('orderForm').hidden = false; update(); });
+
+  initThree();
+  update();
+  renderMine();
+})();
+</script>
+</body>
+</html>
