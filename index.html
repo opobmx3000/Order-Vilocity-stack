@@ -148,8 +148,8 @@
 
 <main class="shell">
   <div class="intro">
-    <h1>ปากแตรไอดี ทำตามขนาดเรือนลิ้นเร่งของคุณ</h1>
-    <p>กรอกขนาดเรือนลิ้นเร่ง ความยาว ขนาดปาก แบบครีบ และข้อความสลัก ดูตัวอย่าง 3 มิติได้ทันที แล้วกดส่งคำสั่งซื้อ ร้านจะติดต่อกลับเพื่อยืนยันราคาและวันส่ง</p>
+    <h1>ปากแตรไอดี ทำตามขนาดได้ตามที่ต้องการ<br>ผลิตแบบ Custom แต่ราคางานเท่า Mass production</h1>
+    <p>กรอกขนาดเรือนลิ้นเร่ง ความยาว ขนาดปาก แบบครีบ และข้อความสลัก ดูตัวอย่าง 3 มิติได้ทันที แล้วกดส่งคำสั่งซื้อ ร้านจะติดต่อกลับเพื่อยืนยันขนาดและวันส่ง</p>
   </div>
 
   <div class="grid">
@@ -167,9 +167,9 @@
       <p class="help" id="flowNote" hidden></p>
       <div class="specline mono" id="specline"></div>
       <div class="price-tile">
-        <span class="lbl">ราคาประมาณ</span>
+        <span class="lbl">ราคา</span>
         <span class="val mono" id="priceTile">฿0</span>
-        <span class="note" id="priceNote">ราคาต่อชิ้น · ร้านยืนยันราคาจริงก่อนผลิต</span>
+        <span class="note" id="priceNote">ราคาต่อชิ้น (ยังไม่รวมค่าส่ง พื้นที่ภายในตัวเมืองขอนแก่น สามารถติดต่อรับเองได้)</span>
       </div>
       <div class="cost-box" id="costBox" hidden>
         <p class="section-title">โหมดร้าน · ต้นทุนต่อชิ้นโดยประมาณ</p>
@@ -220,7 +220,6 @@
               <div class="num-row"><input type="number" id="fTbIn" step="0.01" inputmode="decimal"><span class="unit">มม.</span></div>
             </div>
           </div>
-          <p class="help">วัดด้วยเวอร์เนียร์ที่ปลายเรือนลิ้นเร่ง ถ้าไม่แน่ใจ ใส่รุ่นรถด้านล่าง ร้านจะเช็กให้</p>
           <div class="field" style="margin-top:12px">
             <label for="fSocketR">ความยาวบ่าสวม <span class="small">(ความลึกที่สวมเข้ากับเรือนลิ้นเร่ง)</span></label>
             <div class="num-row">
@@ -333,7 +332,7 @@
             </div>
           </div>
           <div class="field">
-            <label for="fBike">รุ่นรถ / รุ่นเรือนลิ้นเร่ง <span class="small">(ไม่บังคับ)</span></label>
+            <label for="fBike">รุ่นรถ / รุ่นเรือนลิ้นเร่ง</label>
             <input type="text" id="fBike" placeholder="เช่น Honda Forza 300">
           </div>
           <div class="field">
@@ -364,13 +363,13 @@
     <p class="section-title">คำสั่งซื้อที่ส่งจากเครื่องนี้</p>
     <div class="tablewrap">
       <table>
-        <thead><tr><th>เลขออเดอร์</th><th>วันที่</th><th>ขนาด</th><th>ครีบ</th><th>ข้อความ</th><th>สี</th><th>จำนวน</th><th>ราคาประมาณ</th></tr></thead>
+        <thead><tr><th>เลขออเดอร์</th><th>วันที่</th><th>ขนาด</th><th>ครีบ</th><th>ข้อความ</th><th>สี</th><th>จำนวน</th><th>ราคา</th></tr></thead>
         <tbody id="mineBody"></tbody>
       </table>
     </div>
   </section>
 
-  <p class="fineprint">ตัวอย่าง 3 มิติเป็นภาพประมาณเพื่อช่วยเลือกแบบ ไฟล์ผลิตจริงสร้างจาก SolidWorks ตามขนาดที่กรอก ภาพจำลองลมเป็นภาพประกอบ ไม่ใช่ผลคำนวณการไหลจริง ราคาที่แสดงเป็นราคาประมาณ ร้านจะยืนยันราคาและขนาดก่อนผลิตทุกครั้ง</p>
+  <p class="fineprint">ตัวอย่าง 3 มิติเป็นภาพประมาณเพื่อช่วยเลือกแบบ ภาพจำลองลมเป็นภาพประกอบ ไม่ใช่ผลคำนวณการไหลจริง ราคาที่แสดงยังไม่รวมค่าส่ง ร้านจะยืนยันขนาดก่อนผลิตทุกครั้ง</p>
 </main>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -398,7 +397,7 @@ var CONFIG = {
     { id:'red',   label:'แดง',    hex:'#c3262b' },
     { id:'blue',  label:'น้ำเงิน', hex:'#2c56a8' }
   ],
-  // ต้นทุน (ค่าจากไฟล์ คำนวณราคา\ต้นทุนงานปริ้น3D.xlsx แท็บ "ตั้งค่า") ใช้คิดราคาประมาณต่อชิ้น
+  // ต้นทุน (ค่าจากไฟล์ คำนวณราคา\ต้นทุนงานปริ้น3D.xlsx แท็บ "ตั้งค่า") ใช้คิดราคาต่อชิ้น
   COST: {
     MATERIAL:'PETG', DENSITY:1.27,          // g/cm3
     PRICE_PER_KG:300,                       // บาท/กก. (ตั้งค่า B17)
@@ -579,6 +578,7 @@ var CONFIG = {
     if (forSubmit){
       if (!o.customer) e.push('กรอกชื่อ / ร้าน');
       if (!o.contact) e.push('กรอกเบอร์โทรหรือ LINE ID');
+      if (!o.bike) e.push('กรอกรุ่นรถ / รุ่นเรือนลิ้นเร่ง');
     }
     return e;
   }
@@ -704,7 +704,7 @@ var CONFIG = {
     }
     var p = price(o);
     $('priceTile').textContent = baht(p.each) + (o.qty > 1 ? ' × ' + o.qty + ' = ' + baht(p.total) : '');
-    $('priceNote').textContent = 'วัสดุ ' + C.MATERIAL + ' · ประมาณ ' + stats.grams.toFixed(0) + ' กรัม · ราคาต่อชิ้น · ร้านยืนยันราคาจริงก่อนผลิต';
+    $('priceNote').textContent = 'วัสดุ ' + C.MATERIAL + ' · ประมาณ ' + stats.grams.toFixed(0) + ' กรัม · ราคาต่อชิ้น (ยังไม่รวมค่าส่ง พื้นที่ภายในตัวเมืองขอนแก่น สามารถติดต่อรับเองได้)';
     if (!shopToken){ $('costRows').innerHTML = ''; return; }    // cost breakdown only after the shop login
     var ph = printHours(stats), hh = Math.floor(ph), mm = Math.round((ph - hh) * 60);
     if (mm === 60){ hh++; mm = 0; }
@@ -1104,13 +1104,18 @@ var CONFIG = {
     cv.width = Math.ceil(len * ppm); cv.height = Math.ceil(ht * ppm);
     var c = cv.getContext('2d'), W = cv.width, H = cv.height;
     c.fillStyle = '#000'; c.fillRect(0, 0, W, H);
-    c.font = '700 ' + (h / (hasThai(Ly.text) ? 0.62 : 0.72) * ppm) + 'px Sarabun, "Noto Sans Thai", sans-serif';
-    var mw = c.measureText(Ly.text).width || 1;
-    if ('filter' in c) c.filter = 'blur(' + (ppm * 0.07).toFixed(2) + 'px)';   // slightly sloped letter sides
-    c.translate(W / 2, (zB - Ly.zb) * ppm);
-    c.scale(Ly.w * ppm / mw, 1);                                  // same width as the macro's estimate
-    c.textAlign = 'center'; c.textBaseline = 'alphabetic'; c.fillStyle = '#fff';
-    c.fillText(Ly.text, 0, 0);
+    // the word goes on its own small canvas, then that image is stretched to the macro's estimate
+    // (iPhone cut the end of the word when large text was drawn and stretched directly on the mask)
+    var tc = document.createElement('canvas').getContext('2d'), px = h / (hasThai(Ly.text) ? 0.62 : 0.72) * ppm;
+    function wordFont(s){ return '700 ' + s + 'px Sarabun, "Noto Sans Thai", sans-serif'; }
+    tc.font = wordFont(px);
+    var k = Math.min(1, 400 / (tc.measureText(Ly.text).width || 1));   // word at most 400 px wide
+    tc.font = wordFont(px * k);
+    var mw = tc.measureText(Ly.text).width || 1, pad = Math.ceil(px * k * 0.5), sx = Ly.w * ppm / mw;
+    tc.canvas.width = Math.ceil(mw) + 2 * pad; tc.canvas.height = Math.ceil(H * k);   // resizing resets the context
+    tc.font = wordFont(px * k); tc.textAlign = 'left'; tc.textBaseline = 'alphabetic'; tc.fillStyle = '#fff';
+    tc.fillText(Ly.text, pad, (zB - Ly.zb) * ppm * k);
+    c.drawImage(tc.canvas, W / 2 - sx * (mw / 2 + pad), 0, sx * tc.canvas.width, H);
     var img = c.getImageData(0, 0, W, H).data;
     function g(x, y){ return img[(y * W + x) * 4] / 255; }
     function mask(x, y){
@@ -1118,11 +1123,15 @@ var CONFIG = {
       var x0 = x | 0, y0 = y | 0, fx = x - x0, fy = y - y0;
       return (g(x0, y0) * (1 - fx) + g(x0 + 1, y0) * fx) * (1 - fy) + (g(x0, y0 + 1) * (1 - fx) + g(x0 + 1, y0 + 1) * fx) * fy;
     }
+    function soft(x, y){                                          // slightly sloped letter sides
+      var d = ppm * 0.07;
+      return (mask(x - d, y - d) + mask(x + d, y - d) + mask(x - d, y + d) + mask(x + d, y + d)) / 4;
+    }
     var pos = new Float64Array((nu + 1) * (nv + 1) * 3), area = 0, T = E.WRAP_T, i, j;
     for (i = 0; i <= nv; i++){
       var z = zA + ht * i / nv, rs = P.outerAt(z), py = (zB - z) * ppm;
       for (j = 0; j <= nu; j++){
-        var m = mask(j / nu * W, py), phi = -arc / 2 + arc * j / nu, r = rs - 0.3 + m * (T + 0.3), ix = (i * (nu + 1) + j) * 3;
+        var m = soft(j / nu * W, py), phi = -arc / 2 + arc * j / nu, r = rs - 0.3 + m * (T + 0.3), ix = (i * (nu + 1) + j) * 3;
         area += m;
         pos[ix] = r * Math.sin(phi); pos[ix + 1] = z; pos[ix + 2] = r * Math.cos(phi);
       }
@@ -1286,7 +1295,7 @@ var CONFIG = {
   }
   function flowNoteText(P){
     var ratio = Math.pow((P.rc - P.lipR) / P.rBore, 2);
-    $('flowNote').textContent = 'ภาพประกอบโดยประมาณ ไม่ใช่ผลคำนวณการไหลจริง · ลมช่วงคอเร็วกว่าที่ปากราว ' + ratio.toFixed(1) + ' เท่า' +
+    $('flowNote').textContent = 'ภาพประกอบโดยประมาณ · ลมช่วงคอเร็วกว่าที่ปากราว ' + ratio.toFixed(1) + ' เท่า' +
       (P.style !== 'NONE' && P.twist ? ' · ครีบบิดทำให้ลมหมุนเป็นเกลียวก่อนเข้าเรือนลิ้นเร่ง' : '');
   }
   function setFlow(on){
