@@ -60,13 +60,30 @@
   .plate{ border-radius:12px; overflow:hidden; position:relative; aspect-ratio:3/4; touch-action:none;
     background:radial-gradient(120% 140% at 30% 15%, color-mix(in srgb, var(--accent) 12%, var(--surface-2)), var(--surface-2) 60%); border:1px solid var(--border); }
   @media (max-width:880px){ .plate{ aspect-ratio:4/3; } }
-  .plate canvas{ display:block; width:100%; height:100%; }
-  .plate .hint{ position:absolute; left:10px; bottom:10px; font-size:.74rem; color:var(--muted); background:color-mix(in srgb,var(--surface) 80%,transparent); padding:4px 9px; border-radius:999px; border:1px solid var(--border); }
+  .plate canvas{ display:block; width:100%; height:100%; cursor:grab; }
+  .plate canvas:active{ cursor:grabbing; }
+  .plate .hint{ position:absolute; left:10px; bottom:10px; font-size:.74rem; color:var(--muted); background:color-mix(in srgb,var(--surface) 80%,transparent); padding:4px 9px; border-radius:999px; border:1px solid var(--border); pointer-events:none; }
+  .plate-tools{ position:absolute; top:10px; left:10px; right:10px; display:flex; flex-wrap:wrap; gap:6px; justify-content:flex-end; pointer-events:none; }
+  .tool{ pointer-events:auto; font:inherit; font-family:'Chakra Petch',sans-serif; font-size:.78rem; font-weight:600; color:var(--fg); background:color-mix(in srgb,var(--surface) 88%,transparent); border:1px solid var(--border); border-radius:999px; padding:6px 12px; cursor:pointer; }
+  .tool[aria-pressed="true"]{ background:var(--accent); color:var(--accent-ink); border-color:var(--accent); }
+  .legend{ position:absolute; right:10px; bottom:10px; display:flex; align-items:center; gap:6px; font-size:.72rem; color:var(--muted); background:color-mix(in srgb,var(--surface) 85%,transparent); padding:4px 9px; border-radius:999px; border:1px solid var(--border); pointer-events:none; }
+  .legend i{ display:block; width:64px; height:6px; border-radius:3px; background:linear-gradient(90deg,#3d8bfd,#2fc4d6,#f2c94c,#ff6a2a); }
   .specline{ display:flex; flex-wrap:wrap; gap:6px 12px; margin-top:12px; font-size:.84rem; }
   .price-tile{ margin-top:12px; background:var(--surface-2); border:1px solid var(--border); border-radius:10px; padding:12px 14px; }
   .price-tile .lbl{ font-size:.78rem; color:var(--muted); display:block; }
   .price-tile .val{ font-size:1.35rem; font-weight:700; }
   .price-tile .note{ font-size:.74rem; color:var(--muted); display:block; margin-top:2px; }
+  .cost-box{ margin-top:12px; border:1px dashed var(--border); border-radius:10px; padding:12px 14px; }
+  .cost-t{ width:100%; min-width:0; font-size:.8rem; }
+  .cost-t td{ padding:3px 0; border:0; white-space:normal; }
+  .cost-t td:last-child{ text-align:right; font-family:'JetBrains Mono',ui-monospace,monospace; font-variant-numeric:tabular-nums; white-space:nowrap; padding-left:10px; }
+  .cost-t tr.sum td{ border-top:1px solid var(--border); font-weight:700; padding-top:6px; }
+  .cost-t tr.sub td{ color:var(--muted); }
+  .color-row{ display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+  .color-row input[type=color]{ width:36px; height:32px; padding:0; border:1px solid var(--border); border-radius:8px; background:none; flex:none; }
+  .color-row input[type=text]{ flex:1; min-width:0; padding:6px 9px; font-size:.86rem; }
+  .color-row label{ display:flex; align-items:center; gap:4px; font-size:.78rem; white-space:nowrap; }
+  .color-row button{ flex:none; }
 
   .section-title{ font-size:.78rem; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); font-weight:600; margin:0 0 10px; }
   fieldset{ border:0; padding:0; margin:0 0 22px; }
@@ -76,12 +93,12 @@
   .field label{ display:block; font-size:.84rem; font-weight:600; margin-bottom:5px; }
   .field .small{ font-weight:400; color:var(--muted); font-size:.78rem; }
   .help{ font-size:.78rem; color:var(--muted); margin-top:4px; }
-  input[type=text], input[type=tel], input[type=number], select, textarea{
+  input[type=text], input[type=tel], input[type=number], input[type=password], select, textarea{
     width:100%; font:inherit; font-size:.95rem; color:var(--fg); background:var(--surface-2);
     border:1px solid var(--border); border-radius:9px; padding:9px 11px; }
   textarea{ resize:vertical; min-height:60px; }
   .num-row{ display:flex; gap:10px; align-items:center; }
-  .num-row input[type=range]{ flex:1; accent-color:var(--accent); }
+  .num-row input[type=range]{ flex:1; min-width:0; accent-color:var(--accent); }
   .num-row input[type=number]{ width:92px; flex:none; text-align:right; }
   .unit{ color:var(--muted); font-size:.82rem; }
 
@@ -139,14 +156,54 @@
     <section class="card preview-pane" aria-label="ตัวอย่าง 3 มิติ">
       <div class="plate" id="plate">
         <canvas id="canvas"></canvas>
-        <div class="hint">ลากเพื่อหมุนดู</div>
+        <div class="plate-tools">
+          <button type="button" class="tool" id="flowBtn" aria-pressed="false">จำลองลมเข้า</button>
+          <button type="button" class="tool" id="cutBtn" aria-pressed="false">ผ่าครึ่ง</button>
+          <button type="button" class="tool" id="resetBtn">มุมเริ่มต้น</button>
+        </div>
+        <div class="hint" id="hint">ลากเพื่อหมุน · ล้อเมาส์ / ถ่างนิ้วเพื่อซูม</div>
+        <div class="legend" id="legend" hidden><span>ช้า</span><i></i><span>เร็ว</span></div>
       </div>
+      <p class="help" id="flowNote" hidden></p>
       <div class="specline mono" id="specline"></div>
       <div class="price-tile">
         <span class="lbl">ราคาประมาณ</span>
         <span class="val mono" id="priceTile">฿0</span>
         <span class="note" id="priceNote">ราคาต่อชิ้น · ร้านยืนยันราคาจริงก่อนผลิต</span>
       </div>
+      <div class="cost-box" id="costBox" hidden>
+        <p class="section-title">โหมดร้าน · ต้นทุนต่อชิ้นโดยประมาณ</p>
+        <table class="cost-t"><tbody id="costRows"></tbody></table>
+        <div class="row2" style="margin-top:10px">
+          <div class="field">
+            <label for="fProfit">บวกกำไร</label>
+            <div class="num-row"><input type="number" id="fProfit" step="5" min="0" inputmode="decimal"><span class="unit">%</span></div>
+          </div>
+          <div class="field">
+            <label for="fTimeF">Time factor</label>
+            <div class="num-row"><input type="number" id="fTimeF" step="0.05" min="0.5" max="5" inputmode="decimal"><span class="unit">×</span></div>
+          </div>
+        </div>
+        <p class="help" style="margin-top:-6px">Time factor คูณเวลาปริ้นที่คำนวณได้ ให้ใกล้เวลาจริงจากสไลเซอร์ (1 = ตามสูตร)</p>
+        <p class="section-title" style="margin-top:14px">สีที่ขาย</p>
+        <div id="colorEdit"></div>
+        <button type="button" class="btn btn-ghost btn-sm" id="colorAdd" style="margin-top:6px">+ เพิ่มสี</button>
+        <div style="display:flex; gap:8px; margin-top:14px; flex-wrap:wrap">
+          <button type="button" class="btn btn-primary btn-sm" id="shopSave" style="width:auto; flex:1">บันทึกให้ลูกค้าเห็น</button>
+          <button type="button" class="btn btn-ghost btn-sm" id="shopLogout">ออกจากโหมดร้าน</button>
+        </div>
+        <p class="help" id="shopStatus"></p>
+      </div>
+      <form class="cost-box" id="shopLogin" hidden>
+        <p class="section-title">โหมดร้าน</p>
+        <div class="field">
+          <label for="fLogin">รหัสร้าน (TOKEN) <span class="small">ตัวเดียวกับใน sync_config.json</span></label>
+          <input type="password" id="fLogin" autocomplete="current-password">
+        </div>
+        <label class="help" style="display:flex; gap:6px; align-items:center; margin:0 0 10px"><input type="checkbox" id="fRemember" checked> จำรหัสในเครื่องนี้ (ไม่ต้องใส่ใหม่ครั้งหน้า)</label>
+        <button type="submit" class="btn btn-primary btn-sm" id="loginBtn">เข้าโหมดร้าน</button>
+        <p class="help" id="loginStatus"></p>
+      </form>
     </section>
 
     <section class="card" aria-label="รายละเอียดคำสั่งซื้อ">
@@ -164,6 +221,13 @@
             </div>
           </div>
           <p class="help">วัดด้วยเวอร์เนียร์ที่ปลายเรือนลิ้นเร่ง ถ้าไม่แน่ใจ ใส่รุ่นรถด้านล่าง ร้านจะเช็กให้</p>
+          <div class="field" style="margin-top:12px">
+            <label for="fSocketR">ความยาวบ่าสวม <span class="small">(ความลึกที่สวมเข้ากับเรือนลิ้นเร่ง)</span></label>
+            <div class="num-row">
+              <input type="range" id="fSocketR" aria-label="ความยาวบ่าสวม (สไลด์)">
+              <input type="number" id="fSocket" step="0.1" inputmode="decimal" aria-label="ความยาวบ่าสวม (มม.)"><span class="unit">มม.</span>
+            </div>
+          </div>
         </fieldset>
 
         <fieldset>
@@ -182,10 +246,18 @@
               <input type="number" id="fMouth" step="0.5" inputmode="decimal" aria-label="Ø ปาก (มม.)"><span class="unit">มม.</span>
             </div>
           </div>
+          <div class="field">
+            <label for="fWallR">ความหนาผนัง</label>
+            <div class="num-row">
+              <input type="range" id="fWallR" aria-label="ความหนาผนัง (สไลด์)">
+              <input type="number" id="fWall" step="0.5" inputmode="decimal" aria-label="ความหนาผนัง (มม.)"><span class="unit">มม.</span>
+            </div>
+            <p class="help">หนาขึ้นแข็งแรงขึ้น แต่หนักขึ้นและปริ้นนานขึ้น (ขอบม้วนที่ปากโตตามความหนา)</p>
+          </div>
         </fieldset>
 
         <fieldset>
-          <p class="section-title">ครีบเกลียวด้านใน</p>
+          <p class="section-title">ครีบเกลียว</p>
           <div class="chips" id="styleChips" role="group" aria-label="แบบครีบ">
             <button type="button" class="chip" data-v="NONE">ไม่มีครีบ</button>
             <button type="button" class="chip" data-v="RIB">สันนูนด้านใน</button>
@@ -194,13 +266,29 @@
           <div id="ribOpts">
             <div class="row2" style="margin-top:12px">
               <div class="field">
-                <label for="fRibN">จำนวนครีบ</label>
-                <div class="num-row"><input type="number" id="fRibN" step="1" inputmode="numeric"><span class="unit">ครีบ</span></div>
+                <label for="fRibN" id="ribNLabel">จำนวนครีบ</label>
+                <div class="num-row"><input type="number" id="fRibN" step="1" inputmode="numeric"><span class="unit" id="ribNUnit">ครีบ</span></div>
               </div>
               <div class="field">
                 <label for="fTwist">มุมบิด</label>
                 <div class="num-row"><input type="number" id="fTwist" step="5" inputmode="numeric"><span class="unit">องศา</span></div>
               </div>
+            </div>
+            <div class="field" id="ribHField">
+              <label for="fRibHR">ความสูงสัน <span class="small">(วัดจากผนังด้านในถึงปลายสัน)</span></label>
+              <div class="num-row">
+                <input type="range" id="fRibHR" aria-label="ความสูงสัน (สไลด์)">
+                <input type="number" id="fRibH" step="0.5" inputmode="decimal" aria-label="ความสูงสัน (มม.)"><span class="unit">มม.</span>
+              </div>
+              <p class="help" id="ribHHelp"></p>
+            </div>
+            <div class="field" id="grooveField">
+              <label for="fGrooveR">ความลึกร่อง <span class="small">(ร่องด้านใน = สันนูนด้านนอก ผนังหนาเท่าเดิม)</span></label>
+              <div class="num-row">
+                <input type="range" id="fGrooveR" aria-label="ความลึกร่อง (สไลด์)">
+                <input type="number" id="fGroove" step="0.5" inputmode="decimal" aria-label="ความลึกร่อง (มม.)"><span class="unit">มม.</span>
+              </div>
+              <p class="help" id="grooveHelp"></p>
             </div>
             <div class="chips" id="dirChips" role="group" aria-label="ทิศบิด">
               <button type="button" class="chip" data-v="CCW">บิดทวนเข็ม</button>
@@ -221,7 +309,8 @@
         </fieldset>
 
         <fieldset>
-          <p class="section-title">สีและจำนวน</p>
+          <p class="section-title">วัสดุ สี และจำนวน</p>
+          <p class="help" style="margin:0 0 10px">วัสดุ: <b id="materialName"></b> (เส้นพลาสติกสำหรับปริ้น 3 มิติ ทนความร้อนและน้ำมันได้ดีกว่า PLA)</p>
           <div class="chips" id="colorChips" role="group" aria-label="สี"></div>
           <div class="row2" style="margin-top:12px">
             <div class="field">
@@ -281,7 +370,7 @@
     </div>
   </section>
 
-  <p class="fineprint">ตัวอย่าง 3 มิติเป็นภาพประมาณเพื่อช่วยเลือกแบบ ไฟล์ผลิตจริงสร้างจาก SolidWorks ตามขนาดที่กรอก ราคาที่แสดงเป็นราคาประมาณ ร้านจะยืนยันราคาและขนาดก่อนผลิตทุกครั้ง</p>
+  <p class="fineprint">ตัวอย่าง 3 มิติเป็นภาพประมาณเพื่อช่วยเลือกแบบ ไฟล์ผลิตจริงสร้างจาก SolidWorks ตามขนาดที่กรอก ภาพจำลองลมเป็นภาพประกอบ ไม่ใช่ผลคำนวณการไหลจริง ราคาที่แสดงเป็นราคาประมาณ ร้านจะยืนยันราคาและขนาดก่อนผลิตทุกครั้ง</p>
 </main>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -293,12 +382,15 @@ var CONFIG = {
   ORDER_URL: 'https://script.google.com/macros/s/AKfycbwMaUqS6OVl01wv93ioEuG3OIEDOkmPCb0bAFKmb1Dts3_rnLYR8XqDiQCYvRuYMLQ/exec',   // URL ของ Apps Script Web App (ดู README.md ขั้นที่ 2)
   SHOP_NAME: 'สั่งทำปากแตรไอดี',
   // ค่าเริ่มต้นในฟอร์ม (Forza-02)
-  START: { tbOut:48.83, tbIn:43.59, len:105, mouth:114, style:'RIB', ribN:8, twist:90, dir:'CCW', qty:1 },
+  START: { tbOut:48.83, tbIn:43.59, socket:9.1, len:105, mouth:114, wall:3, style:'RIB', ribN:8, twist:90, dir:'CCW', ribH:3, groove:3, qty:1 },
   // ช่วงที่ยอมให้กรอก (ให้ตรงกับเครื่องปริ้นและ Macro)
-  LIMITS: { tbIn:[30,70], tbOutMinGap:2, tbOutMaxGap:20, len:[60,200], mouth:[50,160],
-            ribN:[2,24], twist:[0,180], maxHeight:230, textMax:20, qty:[1,50] },
-  // ค่าวิศวกรรมที่ร้านใช้ใน Excel (ใช้เช็กและวาดตัวอย่างเท่านั้น)
-  ENG: { T_WALL:3, LIP_EXTRA:2, SOCKET_L:10, SOCKET_CH:0.5, RIB_H:3, FLEX_TRIM1:11, WRAP_Z:33.6, WRAP_H_TH:7 },
+  LIMITS: { tbIn:[30,70], tbOutMinGap:2, tbOutMaxGap:20, socket:[5,30], len:[60,200], mouth:[50,160], wall:[2,5],
+            ribN:[2,24], twist:[0,180], ribH:[1,5], groove:[1,5], maxHeight:230, textMax:20, qty:[1,50] },
+  // ค่าวิศวกรรมจากแถวต้นแบบใน Excel (ใช้เช็กและวาดตัวอย่างเท่านั้น; ความหนาผนัง ความยาวบ่าสวม ความสูงสัน ลูกค้าเลือกเอง)
+  ENG: { LIP_EXTRA:2, SOCKET_CH:0.5, SHOULDER_ANG:45,
+         BEAD_H:2.5, BEAD_FLAT:1.5, BEAD_TOP_ANG:45, OVH_ANG:45, CURVE_P:2, CURVE_Q:2,
+         RIB_RAMP_BOT:10, RIB_RAMP_TOP:15, RIB_END_GAP:4, GROOVE_W_RATIO:2,
+         FLEX_TRIM1:11, FLEX_TRIM2:0, WRAP_Z:33.6, WRAP_H:3.5, WRAP_H_TH:7, WRAP_T:1 },
   COLORS: [
     { id:'black', label:'ดำ',     hex:'#1d1d1f' },
     { id:'white', label:'ขาว',    hex:'#ecebe7' },
@@ -306,8 +398,21 @@ var CONFIG = {
     { id:'red',   label:'แดง',    hex:'#c3262b' },
     { id:'blue',  label:'น้ำเงิน', hex:'#2c56a8' }
   ],
-  // สูตรราคาประมาณ (บาท/ชิ้น)
-  PRICE: { base:250, perMmLen:1.5, perMmMouth:1.0, rib:60, flute:150, text:50, round:10 }
+  // ต้นทุน (ค่าจากไฟล์ คำนวณราคา\ต้นทุนงานปริ้น3D.xlsx แท็บ "ตั้งค่า") ใช้คิดราคาประมาณต่อชิ้น
+  COST: {
+    MATERIAL:'PETG', DENSITY:1.27,          // g/cm3
+    PRICE_PER_KG:300,                       // บาท/กก. (ตั้งค่า B17)
+    PRINTER:26000, LIFE_H:5000,             // ค่าเสื่อม = ราคาเครื่อง ÷ อายุ (ตั้งค่า B4/B5)
+    MAINT_H:2,                              // บำรุงรักษา บาท/ชม. (ตั้งค่า B7)
+    WATTS:300, KWH:4.5,                     // ค่าไฟ (ตั้งค่า B8, B9)
+    WASTE:0.05,                             // เผื่อของเสีย (ตั้งค่า B12)
+    LABOR:0,                                // ค่าแรงต่อชิ้น บาท (0 = ไม่คิด)
+    LAYER_H:0.2, LINE_W:0.4, SPEED:150,     // เวลาปริ้น: ชั้น 0.2 มม. เส้น 0.4 มม. 150 มม./วินาที
+    TIME_FACTOR:1,                          // คูณเวลาปริ้น (เช่น 1.5 ถ้าเวลาจริงนานกว่าที่คำนวณ)
+    PROFIT:60,                              // บวกกำไร % (ค่าเริ่มต้น)
+    ROUND:1                                 // ปัดราคาขายเป็นบาทเต็ม
+    // PROFIT, TIME_FACTOR และ COLORS ตั้งใหม่ได้ในโหมดร้าน (?shop=1) โดยไม่ต้องอัปเว็บ: ค่าที่บันทึกเก็บใน Apps Script
+  }
 };
 /* =============================================================== */
 
@@ -341,21 +446,26 @@ var CONFIG = {
   }
 
   /* ---------- form state ---------- */
-  var L = CONFIG.LIMITS, S = CONFIG.START;
+  var L = CONFIG.LIMITS, S = CONFIG.START, E = CONFIG.ENG;
   var state = { style:S.style, dir:S.dir, color:CONFIG.COLORS[0].id };
   $('fTbOut').value = S.tbOut; $('fTbIn').value = S.tbIn;
-  $('fLen').value = S.len; $('fMouth').value = S.mouth;
+  $('fLen').value = S.len; $('fMouth').value = S.mouth; $('fGroove').value = S.groove;
+  $('fSocket').value = S.socket; $('fWall').value = S.wall; $('fRibH').value = S.ribH;
   $('fRibN').value = S.ribN; $('fTwist').value = S.twist; $('fQty').value = S.qty;
   $('fText').maxLength = L.textMax;
 
-  function linkRange(rangeId, numId, lim){
+  function linkRange(rangeId, numId, lim, step){
     var r = $(rangeId), n = $(numId);
-    r.min = lim[0]; r.max = lim[1]; r.step = 0.5; r.value = n.value;
+    r.min = lim[0]; r.max = lim[1]; r.step = step || 0.5; r.value = n.value;
     r.addEventListener('input', function(){ n.value = r.value; update(); });
     n.addEventListener('input', function(){ r.value = n.value; update(); });
   }
   linkRange('fLenR', 'fLen', L.len);
   linkRange('fMouthR', 'fMouth', L.mouth);
+  linkRange('fGrooveR', 'fGroove', L.groove);
+  linkRange('fRibHR', 'fRibH', L.ribH);
+  linkRange('fWallR', 'fWall', L.wall);
+  linkRange('fSocketR', 'fSocket', L.socket, 0.1);
   ['fTbOut','fTbIn','fRibN','fTwist','fText','fQty'].forEach(function(id){ $(id).addEventListener('input', update); });
 
   function wireChips(wrapId, key){
@@ -366,18 +476,35 @@ var CONFIG = {
     });
     paint();
   }
-  CONFIG.COLORS.forEach(function(c){
-    var b = document.createElement('button');
-    b.type = 'button'; b.className = 'chip'; b.dataset.v = c.id;
-    b.innerHTML = '<span class="dot" style="background:' + c.hex + '"></span>' + c.label;
-    $('colorChips').appendChild(b);
-  });
   wireChips('styleChips', 'style');
   wireChips('dirChips', 'dir');
-  wireChips('colorChips', 'color');
+
+  // shop settings: CONFIG values until the saved ones arrive from Apps Script (?action=config)
+  var live = { colors: CONFIG.COLORS.map(function(c){ return { id:c.id, label:c.label, hex:c.hex, stock:c.stock !== false }; }),
+               profit: CONFIG.COST.PROFIT, timeFactor: CONFIG.COST.TIME_FACTOR };
+  function inStock(){ return live.colors.filter(function(c){ return c.stock; }); }
+  function renderColorChips(){
+    var wrap = $('colorChips'), list = inStock();
+    if (!list.some(function(c){ return c.id === state.color; })) state.color = list.length ? list[0].id : '';
+    wrap.innerHTML = '';
+    list.forEach(function(c){
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'chip'; b.dataset.v = c.id;
+      b.setAttribute('aria-pressed', String(c.id === state.color));
+      var dot = document.createElement('span'); dot.className = 'dot'; dot.style.background = c.hex;
+      b.appendChild(dot); b.appendChild(document.createTextNode(c.label));
+      b.addEventListener('click', function(){ state.color = c.id; renderColorChips(); update(); });
+      wrap.appendChild(b);
+    });
+    if (!list.length) wrap.textContent = 'ตอนนี้สีหมดทุกสี ติดต่อร้าน';
+  }
+  renderColorChips();
 
   function num(id){ var v = parseFloat($(id).value); return isFinite(v) ? v : NaN; }
-  function colorOf(id){ for (var i = 0; i < CONFIG.COLORS.length; i++) if (CONFIG.COLORS[i].id === id) return CONFIG.COLORS[i]; return CONFIG.COLORS[0]; }
+  function colorOf(id){
+    for (var i = 0; i < live.colors.length; i++) if (live.colors[i].id === id) return live.colors[i];
+    return live.colors[0] || { id:'', label:'-', hex:'#1d1d1f' };
+  }
   function hasThai(s){ return /[฀-๿]/.test(s); }
   // same estimate as the macro (TextWidth): Thai 0.85h, Latin 0.65h, space 0.3h, Thai marks 0
   function textWidth(s, h){
@@ -391,15 +518,24 @@ var CONFIG = {
     }
     return w;
   }
+  // FLUTE: groove base width (GrooveHalfW x 2) and how many grooves fit round the bore with 1 mm between them
+  function grooveBase(gd){ return 2 * E.GROOVE_W_RATIO * gd / Math.sqrt(3); }
+  function fluteMax(dIn, gd){ return Math.floor(Math.PI * dIn / (grooveBase(gd) + 1)); }
+  // RIB: equilateral base (2h/sqrt3), same 1 mm gap round the bore
+  function ribBase(h){ return 2 * h / Math.sqrt(3); }
+  function ribMax(dIn, h){ return Math.floor(Math.PI * dIn / (ribBase(h) + 1)); }
 
   function readOrder(){
     var style = state.style;
     return {
       D_TB_OUT: num('fTbOut'), D_TB_IN: num('fTbIn'), HORN_L: num('fLen'), D_OUT_TOP: num('fMouth'),
+      T_WALL: num('fWall'), SOCKET_L: num('fSocket'),
+      RIB_H: style === 'RIB' ? num('fRibH') : '',
       RIB_STYLE: style === 'NONE' ? 'RIB' : style,
       RIB_N: style === 'NONE' ? 0 : Math.round(num('fRibN')),
       FLEX_ANG: style === 'NONE' ? 0 : num('fTwist'),
       TWIST_DIR: state.dir,
+      GROOVE_D: style === 'FLUTE' ? num('fGroove') : '',
       WRAP_TEXT_IN: style === 'FLUTE' ? '' : $('fText').value.trim(),
       styleChoice: style,
       color: state.color, qty: Math.round(num('fQty')),
@@ -411,21 +547,34 @@ var CONFIG = {
 
   // same rules as the Excel "CHECK" column and the macro (Apps Script repeats them)
   function validate(o, forSubmit){
-    var e = [], E = CONFIG.ENG, lip = E.T_WALL + E.LIP_EXTRA;
+    var e = [], T = isFinite(o.T_WALL) ? o.T_WALL : 3, lip = T + E.LIP_EXTRA;
     function bad(v){ return !isFinite(v); }
+    if (bad(o.T_WALL) || o.T_WALL < L.wall[0] || o.T_WALL > L.wall[1]) e.push('ความหนาผนังต้องอยู่ระหว่าง ' + L.wall[0] + '–' + L.wall[1] + ' มม.');
+    if (bad(o.SOCKET_L) || o.SOCKET_L < L.socket[0] || o.SOCKET_L > L.socket[1]) e.push('ความยาวบ่าสวมต้องอยู่ระหว่าง ' + L.socket[0] + '–' + L.socket[1] + ' มม.');
     if (bad(o.D_TB_IN) || o.D_TB_IN < L.tbIn[0] || o.D_TB_IN > L.tbIn[1]) e.push('Ø ในเรือนลิ้นเร่ง ต้องอยู่ระหว่าง ' + L.tbIn[0] + '–' + L.tbIn[1] + ' มม.');
     if (bad(o.D_TB_OUT) || o.D_TB_OUT < o.D_TB_IN + L.tbOutMinGap) e.push('Ø นอกเรือนลิ้นเร่ง ต้องโตกว่า Ø ใน อย่างน้อย ' + L.tbOutMinGap + ' มม.');
     else if (o.D_TB_OUT > o.D_TB_IN + L.tbOutMaxGap) e.push('Ø นอก ต่างจาก Ø ใน เกิน ' + L.tbOutMaxGap + ' มม. ลองวัดใหม่');
     if (bad(o.HORN_L) || o.HORN_L < L.len[0] || o.HORN_L > L.len[1]) e.push('ความยาวต้องอยู่ระหว่าง ' + L.len[0] + '–' + L.len[1] + ' มม.');
     if (bad(o.D_OUT_TOP) || o.D_OUT_TOP < L.mouth[0] || o.D_OUT_TOP > L.mouth[1]) e.push('Ø ปากต้องอยู่ระหว่าง ' + L.mouth[0] + '–' + L.mouth[1] + ' มม.');
-    else if (isFinite(o.D_TB_IN) && o.D_OUT_TOP / 2 - lip / 2 <= o.D_TB_IN / 2 + E.T_WALL + 5) e.push('Ø ปากเล็กเกินไป ต้องโตกว่าประมาณ ' + Math.ceil(o.D_TB_IN + 2 * E.T_WALL + 10 + lip) + ' มม.');
-    var h = E.SOCKET_CH + E.SOCKET_L + (o.HORN_L || 0);
+    else if (isFinite(o.D_TB_IN) && o.D_OUT_TOP / 2 - lip / 2 <= o.D_TB_IN / 2 + T + 5) e.push('Ø ปากเล็กเกินไป ต้องโตกว่าประมาณ ' + Math.ceil(o.D_TB_IN + 2 * T + 10 + lip) + ' มม.');
+    var h = E.SOCKET_CH + (o.SOCKET_L || 0) + (o.HORN_L || 0);
     if (h > L.maxHeight) e.push('สูงรวม ' + h.toFixed(0) + ' มม. เกินเครื่องปริ้น (' + L.maxHeight + ' มม.)');
     if (o.styleChoice !== 'NONE'){
       if (bad(o.RIB_N) || o.RIB_N < L.ribN[0] || o.RIB_N > L.ribN[1]) e.push('จำนวนครีบต้องอยู่ระหว่าง ' + L.ribN[0] + '–' + L.ribN[1]);
       if (bad(o.FLEX_ANG) || o.FLEX_ANG < L.twist[0] || o.FLEX_ANG > L.twist[1]) e.push('มุมบิดต้องอยู่ระหว่าง ' + L.twist[0] + '–' + L.twist[1] + ' องศา');
     }
+    if (o.styleChoice === 'RIB'){
+      if (bad(o.RIB_H) || o.RIB_H < L.ribH[0] || o.RIB_H > L.ribH[1]) e.push('ความสูงสันต้องอยู่ระหว่าง ' + L.ribH[0] + '–' + L.ribH[1] + ' มม.');
+      else if (isFinite(o.D_TB_IN) && isFinite(o.RIB_N) && o.RIB_N > ribMax(o.D_TB_IN, o.RIB_H))
+        e.push('สันสูง ' + o.RIB_H + ' มม. ใส่ได้สูงสุด ' + ribMax(o.D_TB_IN, o.RIB_H) + ' สัน (มากกว่านี้สันชนกัน) ลดจำนวนสันหรือความสูง');
+    }
+    if (o.styleChoice === 'FLUTE'){
+      if (bad(o.GROOVE_D) || o.GROOVE_D < L.groove[0] || o.GROOVE_D > L.groove[1]) e.push('ความลึกร่องต้องอยู่ระหว่าง ' + L.groove[0] + '–' + L.groove[1] + ' มม.');
+      else if (isFinite(o.D_TB_IN) && isFinite(o.RIB_N) && o.RIB_N > fluteMax(o.D_TB_IN, o.GROOVE_D))
+        e.push('ร่องลึก ' + o.GROOVE_D + ' มม. ใส่ได้สูงสุด ' + fluteMax(o.D_TB_IN, o.GROOVE_D) + ' ร่อง (มากกว่านี้ร่องชนกัน) ลดจำนวนร่องหรือความลึก');
+    }
     if (o.WRAP_TEXT_IN.length > L.textMax) e.push('ข้อความยาวเกิน ' + L.textMax + ' ตัวอักษร');
+    if (!inStock().some(function(c){ return c.id === o.color; })) e.push('เลือกสี (ถ้าไม่มีสีให้เลือก แปลว่าสีหมด ติดต่อร้าน)');
     if (bad(o.qty) || o.qty < L.qty[0] || o.qty > L.qty[1]) e.push('จำนวนต้องอยู่ระหว่าง ' + L.qty[0] + '–' + L.qty[1] + ' ชิ้น');
     if (forSubmit){
       if (!o.customer) e.push('กรอกชื่อ / ร้าน');
@@ -434,74 +583,220 @@ var CONFIG = {
     return e;
   }
 
+  /* ---------- price: cost of filament (volume x density) + print time (layers) + machine, then profit ---------- */
+  var C = CONFIG.COST, stats = null;                             // stats = volume / time of the last valid model
+  var SHOP = /[?&#]shop\b/.test(location.search + location.hash);  // ?shop=1 asks for the shop TOKEN
+  var shopToken = '';                                            // set once Apps Script accepted the TOKEN
+  $('materialName').textContent = C.MATERIAL;
+  $('shopLogin').hidden = !SHOP;
+  function printHours(s){ return s.hours * live.timeFactor; }
+  function quoteOf(s){
+    if (!s) return null;
+    var h = printHours(s), fil = s.grams * C.PRICE_PER_KG / 1000, power = h * C.WATTS / 1000 * C.KWH;
+    var mach = h * (C.PRINTER / C.LIFE_H + C.MAINT_H), sub = fil + power + mach + C.LABOR;
+    var waste = sub * C.WASTE, cost = sub + waste, pr = live.profit;
+    var each = Math.max(C.ROUND, Math.round(cost * (1 + pr / 100) / C.ROUND) * C.ROUND);
+    return { fil:fil, power:power, mach:mach, waste:waste, cost:cost, profit:pr, each:each };
+  }
+
+  /* ---------- shop mode: profit, time factor and colours, saved to Apps Script for every customer ---------- */
+  function shopStatus(msg, bad){ $('shopStatus').textContent = msg; $('shopStatus').style.color = bad ? 'var(--bad)' : ''; }
+  function renderShop(){
+    $('fProfit').value = live.profit; $('fTimeF').value = live.timeFactor;
+    var box = $('colorEdit');
+    box.innerHTML = '';
+    live.colors.forEach(function(c, i){
+      var row = document.createElement('div'); row.className = 'color-row';
+      var hx = document.createElement('input'); hx.type = 'color'; hx.value = c.hex; hx.setAttribute('aria-label', 'สี');
+      var nm = document.createElement('input'); nm.type = 'text'; nm.value = c.label; nm.maxLength = 20; nm.setAttribute('aria-label', 'ชื่อสี');
+      var lb = document.createElement('label'), ck = document.createElement('input');
+      ck.type = 'checkbox'; ck.checked = c.stock; lb.appendChild(ck); lb.appendChild(document.createTextNode('มีของ'));
+      var del = document.createElement('button'); del.type = 'button'; del.className = 'btn btn-ghost btn-sm'; del.textContent = 'ลบ';
+      hx.addEventListener('input', function(){ c.hex = hx.value; shopChanged(); });
+      nm.addEventListener('input', function(){ c.label = nm.value.trim() || c.label; shopChanged(true); });
+      ck.addEventListener('change', function(){ c.stock = ck.checked; shopChanged(); });
+      del.addEventListener('click', function(){ live.colors.splice(i, 1); renderShop(); shopChanged(); });
+      row.appendChild(hx); row.appendChild(nm); row.appendChild(lb); row.appendChild(del);
+      box.appendChild(row);
+    });
+  }
+  function shopChanged(keepEditor){
+    renderColorChips(); update();
+    shopStatus('ยังไม่ได้บันทึก · ลูกค้ายังเห็นค่าเดิมจนกว่าจะกด "บันทึกให้ลูกค้าเห็น"');
+  }
+  $('fProfit').addEventListener('input', function(){ var v = num('fProfit'); if (isFinite(v) && v >= 0){ live.profit = v; shopChanged(); } });
+  $('fTimeF').addEventListener('input', function(){ var v = num('fTimeF'); if (isFinite(v) && v >= 0.5 && v <= 5){ live.timeFactor = v; shopChanged(); } });
+  $('colorAdd').addEventListener('click', function(){
+    live.colors.push({ id:'c' + Date.now().toString(36), label:'สีใหม่', hex:'#888888', stock:true });
+    renderShop(); shopChanged();
+  });
+  // login: Apps Script checks the TOKEN; only then the cost table and the editors appear
+  function loginStatus(msg, bad){ $('loginStatus').textContent = msg; $('loginStatus').style.color = bad ? 'var(--bad)' : ''; }
+  function storedToken(){
+    try { return localStorage.getItem('vs-shop-token') || sessionStorage.getItem('vs-shop-token') || ''; } catch(e){ return ''; }
+  }
+  function forgetToken(){
+    try { localStorage.removeItem('vs-shop-token'); sessionStorage.removeItem('vs-shop-token'); } catch(e){}
+  }
+  function login(token, remember){
+    if (!CONFIG.ORDER_URL){ loginStatus('ยังไม่ได้ตั้ง ORDER_URL จึงตรวจรหัสไม่ได้', true); return; }
+    $('loginBtn').disabled = true; loginStatus('กำลังตรวจรหัส...');
+    fetch(CONFIG.ORDER_URL, { method:'POST', body:JSON.stringify({ action:'auth', token:token }) })
+      .then(function(r){ return r.json(); })
+      .then(function(res){
+        if (!res.ok){ forgetToken(); throw new Error('รหัสไม่ถูกต้อง'); }
+        shopToken = token;
+        try { (remember ? localStorage : sessionStorage).setItem('vs-shop-token', token); } catch(e){}
+        $('fLogin').value = ''; loginStatus('');
+        $('shopLogin').hidden = true; $('costBox').hidden = false;
+        renderShop(); renderQuote(readOrder());
+      })
+      .catch(function(err){ loginStatus(err.message, true); })
+      .then(function(){ $('loginBtn').disabled = false; });
+  }
+  $('shopLogin').addEventListener('submit', function(ev){
+    ev.preventDefault();
+    var t = $('fLogin').value.trim();
+    if (t) login(t, $('fRemember').checked); else loginStatus('ใส่รหัสร้านก่อน', true);
+  });
+  $('shopLogout').addEventListener('click', function(){
+    shopToken = ''; forgetToken();
+    $('costBox').hidden = true; $('costRows').innerHTML = ''; $('shopLogin').hidden = false; shopStatus('');
+  });
+  if (SHOP && storedToken()) login(storedToken(), true);
+  $('shopSave').addEventListener('click', function(){
+    var token = shopToken;
+    if (!token) return;
+    var btn = $('shopSave'); btn.disabled = true; shopStatus('กำลังบันทึก...');
+    fetch(CONFIG.ORDER_URL, { method:'POST', body:JSON.stringify({ action:'settings', token:token,
+      settings:{ profit:live.profit, timeFactor:live.timeFactor, colors:live.colors } }) })
+      .then(function(r){ return r.json(); })
+      .then(function(res){
+        if (!res.ok) throw new Error(res.error || 'บันทึกไม่สำเร็จ');
+        applySettings(res.settings); shopStatus('บันทึกแล้ว ลูกค้าที่เปิดเว็บใหม่จะเห็นค่านี้');
+      })
+      .catch(function(err){ shopStatus('บันทึกไม่สำเร็จ: ' + err.message, true); })
+      .then(function(){ btn.disabled = false; });
+  });
+  function applySettings(s){
+    if (!s) return;
+    if (isFinite(s.profit)) live.profit = Number(s.profit);
+    if (isFinite(s.timeFactor)) live.timeFactor = Number(s.timeFactor);
+    if (Array.isArray(s.colors) && s.colors.length) live.colors = s.colors.map(function(c){ return { id:String(c.id), label:String(c.label), hex:String(c.hex), stock:c.stock !== false }; });
+    renderColorChips(); if (shopToken) renderShop(); update();
+  }
+  if (CONFIG.ORDER_URL){
+    fetch(CONFIG.ORDER_URL + '?action=config').then(function(r){ return r.json(); })
+      .then(function(res){ if (res.ok) applySettings(res.settings); }, function(){});
+  }
   function price(o){
-    var P = CONFIG.PRICE, each = P.base + (o.HORN_L || 0) * P.perMmLen + (o.D_OUT_TOP || 0) * P.perMmMouth;
-    if (o.styleChoice === 'RIB') each += P.rib;
-    if (o.styleChoice === 'FLUTE') each += P.flute;
-    if (o.WRAP_TEXT_IN) each += P.text;
-    each = Math.round(each / P.round) * P.round;
-    var q = isFinite(o.qty) && o.qty > 0 ? o.qty : 1;
-    return { each: each, total: each * q };
+    var q = quoteOf(stats), n = isFinite(o.qty) && o.qty > 0 ? o.qty : 1;
+    return q ? { each:q.each, total:q.each * n } : { each:0, total:0 };
+  }
+  function baht(v, d){ return '฿' + v.toLocaleString('th-TH', { minimumFractionDigits:d || 0, maximumFractionDigits:d || 0 }); }
+  function renderQuote(o){
+    var q = quoteOf(stats);
+    if (!q){
+      $('priceTile').textContent = '—';
+      $('priceNote').textContent = 'วัสดุ ' + C.MATERIAL + ' · แก้ค่าที่ขึ้นสีแดงก่อน จึงจะคำนวณราคาได้';
+      $('costRows').innerHTML = '';
+      return;
+    }
+    var p = price(o);
+    $('priceTile').textContent = baht(p.each) + (o.qty > 1 ? ' × ' + o.qty + ' = ' + baht(p.total) : '');
+    $('priceNote').textContent = 'วัสดุ ' + C.MATERIAL + ' · ประมาณ ' + stats.grams.toFixed(0) + ' กรัม · ราคาต่อชิ้น · ร้านยืนยันราคาจริงก่อนผลิต';
+    if (!shopToken){ $('costRows').innerHTML = ''; return; }    // cost breakdown only after the shop login
+    var ph = printHours(stats), hh = Math.floor(ph), mm = Math.round((ph - hh) * 60);
+    if (mm === 60){ hh++; mm = 0; }
+    $('costRows').innerHTML = [
+      ['ปริมาตร', (stats.vol / 1000).toFixed(1) + ' cm³', 'sub'],
+      [C.MATERIAL + ' × ' + C.DENSITY + ' g/cm³', stats.grams.toFixed(0) + ' g', 'sub'],
+      [stats.layers + ' ชั้น × ' + C.LAYER_H + ' มม. · เส้น ' + C.LINE_W + ' มม. ยาว ' + (stats.path / 1000).toFixed(0) + ' ม.', '', 'sub'],
+      ['เวลาปริ้นที่ ' + C.SPEED + ' มม./วินาที' + (live.timeFactor !== 1 ? ' × ' + live.timeFactor : ''), hh + ' ชม. ' + mm + ' นาที', 'sub'],
+      ['ค่าเส้น (' + C.PRICE_PER_KG + ' บาท/กก.)', baht(q.fil, 2)],
+      ['ค่าไฟ (' + C.WATTS + ' W × ' + C.KWH + ' บาท/หน่วย)', baht(q.power, 2)],
+      ['ค่าเสื่อม + บำรุงรักษา', baht(q.mach, 2)]
+    ].concat(C.LABOR ? [['ค่าแรง', baht(C.LABOR, 2)]] : []).concat([
+      ['เผื่อของเสีย ' + (C.WASTE * 100) + '%', baht(q.waste, 2)],
+      ['ต้นทุนรวม', baht(q.cost, 2), 'sum'],
+      ['ราคาขาย (+' + q.profit + '% ปัดเป็นบาท)', baht(q.each), 'sum']
+    ]).map(function(r){ return '<tr' + (r[2] ? ' class="' + r[2] + '"' : '') + '><td>' + r[0] + '</td><td>' + r[1] + '</td></tr>'; }).join('');
+  }
+  function styleText(o){
+    if (o.styleChoice === 'NONE') return 'ไม่มีครีบ';
+    if (o.styleChoice === 'FLUTE') return o.RIB_N + ' ร่อง ลึก ' + fmt(o.GROOVE_D);
+    return o.RIB_N + ' สัน สูง ' + fmt(o.RIB_H);
   }
 
   function update(){
-    var o = readOrder();
+    var o = readOrder(), flute = o.styleChoice === 'FLUTE';
     $('ribOpts').hidden = o.styleChoice === 'NONE';
-    $('fluteTextNote').hidden = !(o.styleChoice === 'FLUTE' && $('fText').value.trim());
-    // text size hint (mirrors the macro: Thai >= 7 mm, shrinks if longer than 45% of the neck)
+    $('grooveField').hidden = !flute;
+    $('ribHField').hidden = o.styleChoice !== 'RIB';
+    $('ribNLabel').textContent = flute ? 'จำนวนร่อง' : 'จำนวนสัน';
+    $('ribNUnit').textContent = flute ? 'ร่อง' : 'สัน';
+    $('ribHHelp').textContent = o.styleChoice === 'RIB' && isFinite(o.RIB_H) && isFinite(o.D_TB_IN)
+      ? 'ฐานสันกว้าง ' + ribBase(o.RIB_H).toFixed(1) + ' มม. (สามเหลี่ยมด้านเท่า) · ใส่ได้สูงสุด ' + Math.min(L.ribN[1], ribMax(o.D_TB_IN, o.RIB_H)) + ' สัน' : '';
+    $('fluteTextNote').hidden = !(flute && $('fText').value.trim());
+    $('grooveHelp').textContent = flute && isFinite(o.GROOVE_D) && isFinite(o.D_TB_IN)
+      ? 'ฐานร่องกว้าง ' + grooveBase(o.GROOVE_D).toFixed(1) + ' มม. (สัดส่วนคงที่) · ใส่ได้สูงสุด ' + fluteMax(o.D_TB_IN, o.GROOVE_D) + ' ร่อง' : '';
+    var errs = validate(o, false);
+    var P = errs.length ? null : build(o);
+    // text size hint (mirrors the macro's BuildText)
     var t = o.WRAP_TEXT_IN, help = '';
     if (t){
-      var hgt = hasThai(t) ? CONFIG.ENG.WRAP_H_TH : 3.5;
-      var rT = (o.D_TB_IN || 40) / 2 + CONFIG.ENG.T_WALL;
-      var w = textWidth(t, hgt), wmax = 0.9 * Math.PI * rT;
-      if (w > wmax){ hgt = hgt * wmax / w; w = wmax; }
-      help = 'ตัวอักษรสูงประมาณ ' + hgt.toFixed(1) + ' มม. ยาวประมาณ ' + w.toFixed(0) + ' มม.' +
-             (hasThai(t) && hgt < CONFIG.ENG.WRAP_H_TH - 0.05 ? ' · ข้อความยาว ตัวอักษรจะเล็กลง แนะนำให้สั้นลง' : '');
+      var tl = P ? P.text : null;
+      if (tl) help = 'ตัวอักษรสูงประมาณ ' + tl.th.toFixed(1) + ' มม. ยาวประมาณ ' + tl.w.toFixed(0) + ' มม.' +
+                     (tl.shrunk ? ' · ข้อความยาว ตัวอักษรจะเล็กลง แนะนำให้สั้นลง' : '');
     }
     $('textHelp').textContent = help;
-    var errs = validate(o, false);
     var list = $('issues');
     list.innerHTML = errs.map(function(s){ return '<li>' + s + '</li>'; }).join('');
     list.hidden = errs.length === 0;
-    var p = price(o);
-    $('priceTile').textContent = '฿' + p.each.toLocaleString('th-TH') + (o.qty > 1 ? ' × ' + o.qty + ' = ฿' + p.total.toLocaleString('th-TH') : '');
+    if (!P) stats = null;
+    renderQuote(o);
     $('specline').innerHTML = [
-      'ปากสวม Ø' + fmt(o.D_TB_OUT), 'รู Ø' + fmt(o.D_TB_IN), 'ยาว ' + fmt(o.HORN_L), 'ปาก Ø' + fmt(o.D_OUT_TOP),
-      o.styleChoice === 'NONE' ? 'ไม่มีครีบ' : (o.RIB_N + (o.styleChoice === 'FLUTE' ? ' ร่อง' : ' ครีบ') + ' บิด ' + fmt(o.FLEX_ANG) + '°')
+      'ปากสวม Ø' + fmt(o.D_TB_OUT) + ' ลึก ' + fmt(o.SOCKET_L), 'รู Ø' + fmt(o.D_TB_IN), 'ยาว ' + fmt(o.HORN_L), 'ปาก Ø' + fmt(o.D_OUT_TOP),
+      'ผนัง ' + fmt(o.T_WALL),
+      styleText(o) + (o.styleChoice === 'NONE' ? '' : ' บิด ' + fmt(o.FLEX_ANG) + '°')
     ].join(' · ');
-    if (!errs.length) rebuild(o);
+    if (P){
+      pending = { o:o, P:P }; flowNoteText(P);
+      if (!scene){ processJob(pending); pending = null; }        // no 3D (WebGL / three.js missing): price only
+    }
   }
   function fmt(v){ return isFinite(v) ? (Math.round(v * 100) / 100) : '–'; }
 
-  /* ---------- 3D preview (approximate, same curve as the macro) ---------- */
-  var canvas = $('canvas'), plate = $('plate');
-  var renderer, scene, camera, group, body, ribs = [], textMesh, matBody, matRib;
-  var rotY = 0.6, dragging = false, lastX = 0, autoSpin = !window.matchMedia('(prefers-reduced-motion: reduce)').matches, idle = null;
+  /* ---------- geometry: same profile as the macro (wall, lip, socket, shoulder ring, support fill, ribs) ---------- */
+  var DEG = Math.PI / 180;
 
-  function geom(o){
-    var E = CONFIG.ENG, T = E.T_WALL, lipR = (T + E.LIP_EXTRA) / 2;
-    var g = { T:T, rSi:o.D_TB_OUT/2, rSo:o.D_TB_OUT/2 + T, rBore:o.D_TB_IN/2, rWo:o.D_TB_IN/2 + T,
-              zSh:E.SOCKET_CH + E.SOCKET_L };
-    g.zTop = g.zSh + o.HORN_L; g.lipR = lipR; g.rc = o.D_OUT_TOP/2 - lipR; g.zc = g.zTop - lipR;
-    g.r0c = g.rBore + T/2; g.zW0 = g.zSh;
-    return g;
-  }
-  function centerPts(g, p, q){
-    var A = g.rc - g.r0c, B = g.zc - g.zW0, pts = [], N = 60;
-    for (var i = 0; i <= N; i++){
-      var s = i / N, u = 1 - Math.pow(1 - s, 1.5), w = Math.max(0, 1 - Math.pow(u, p));
-      pts.push([g.rc - A * Math.pow(w, 1 / q), g.zW0 + B * u]);
+  // wall centerline r = RC - A(1 - u^P)^(1/Q) (CenterPts)
+  function curvePts(P, n, cp, cq){
+    var A = P.rc - P.r0c, B = P.zc - P.zW0, pts = [];
+    for (var i = 0; i <= n; i++){
+      var s = i / n, u = 1 - Math.pow(1 - s, 1.5), w = Math.max(0, 1 - Math.pow(u, cp));
+      pts.push([P.rc - A * Math.pow(w, 1 / cq), P.zW0 + B * u]);
     }
     return pts;
   }
-  function offset(pts, d){
+  // left normal of the polyline = inward / up for the wall (OffsetPts)
+  function leftNormals(pts){
     var n = pts.length, out = [];
     for (var i = 0; i < n; i++){
       var a = pts[Math.max(i - 1, 0)], b = pts[Math.min(i + 1, n - 1)];
-      var tx = b[0] - a[0], ty = b[1] - a[1], L2 = Math.hypot(tx, ty) || 1;
-      out.push([pts[i][0] - d * ty / L2, pts[i][1] + d * tx / L2]);
+      var tx = b[0] - a[0], ty = b[1] - a[1], l = Math.hypot(tx, ty) || 1;
+      out.push([-ty / l, tx / l]);
     }
     return out;
+  }
+  function offset(pts, d){
+    var nr = leftNormals(pts);
+    return pts.map(function(p, i){ return [p[0] + d * nr[i][0], p[1] + d * nr[i][1]]; });
+  }
+  function arcLen(p){
+    var s = [0];
+    for (var i = 1; i < p.length; i++) s.push(s[i - 1] + Math.hypot(p[i][0] - p[i-1][0], p[i][1] - p[i-1][1]));
+    return s;
   }
   function minBend(p){
     var best = 1e30;
@@ -513,97 +808,577 @@ var CONFIG = {
     }
     return best;
   }
-
-  function rebuild(o){
-    if (!scene) return;
-    var g = geom(o), p = 2, q = 2;
-    while (minBend(centerPts(g, p, q)) < g.T / 2 + 2 && p < 30) p *= 1.2;      // like FixCurve
-    var cen = centerPts(g, p, q), outer = offset(cen, -g.T / 2), inner = offset(cen, g.T / 2);
-    var prof = [[g.rSi + 0.5, 0], [g.rSo, 0], [g.rSo, g.zSh + g.T]];
-    outer.forEach(function(v){ if (v[1] > g.zSh + g.T) prof.push(v); });
-    for (var a = -90; a <= 270; a += 15){                                      // lip roll
-      var rad = a * Math.PI / 180; prof.push([g.rc + g.lipR * Math.cos(rad), g.zc + g.lipR * Math.sin(rad)]);
-    }
-    for (var i = inner.length - 1; i >= 0; i--) prof.push(inner[i]);
-    prof.push([g.rBore, g.zSh], [g.rSi, g.zSh], [g.rSi, 0.5], [g.rSi + 0.5, 0]);
-    var S = 1 / 25, zMid = g.zTop / 2;
-    var v2 = prof.map(function(v){ return new THREE.Vector2(Math.max(v[0], 0.01) * S, (v[1] - zMid) * S); });
-    if (body){ group.remove(body); body.geometry.dispose(); }
-    body = new THREE.Mesh(new THREE.LatheGeometry(v2, 72), matBody);
-    group.add(body);
-    matBody.color.set(colorOf(o.color).hex);
-    matRib.color.set(colorOf(o.color).hex);
-
-    ribs.forEach(function(m){ group.remove(m); m.geometry.dispose(); }); ribs = [];
-    if (o.styleChoice !== 'NONE' && o.RIB_N >= 1){
-      var surf = o.styleChoice === 'FLUTE' ? offset(cen, -g.T / 2 - 0.6) : offset(cen, g.T / 2 + 0.6);
-      var zEnd = g.zTop - 8, trim = CONFIG.ENG.FLEX_TRIM1, sign = o.TWIST_DIR === 'CW' ? -1 : 1;
-      for (var k = 0; k < o.RIB_N; k++){
-        var th0 = 2 * Math.PI * k / o.RIB_N, path = [];
-        surf.forEach(function(v){
-          if (v[1] < g.zSh + 3 || v[1] > zEnd) return;
-          var tw = sign * (o.FLEX_ANG * Math.PI / 180) * Math.max(0, Math.min(1, (v[1] - trim) / (g.zTop - trim)));
-          var th = th0 + tw;
-          path.push(new THREE.Vector3(v[0] * Math.cos(th) * S, (v[1] - zMid) * S, v[0] * Math.sin(th) * S));
-        });
-        if (path.length < 2) continue;
-        var tube = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(path), 80, 1.1 * S, 6, false), matRib);
-        group.add(tube); ribs.push(tube);
+  // where the support-fill line (through the lip tangent point, slope OVH) meets a wall surface (BuildFill)
+  function lineHit(c, tr, tz, dr, dz){
+    var n = c.length;
+    function f(i){ return dr * (c[i][1] - tz) - dz * (c[i][0] - tr); }   // > 0 = wall above the line
+    if (f(n - 1) <= 0) return null;
+    for (var i = n - 1; i >= 1; i--){
+      var f1 = f(i), f0 = f(i - 1);
+      if (f1 > 0 && f0 <= 0){
+        var s = f1 / (f1 - f0);
+        return { r: c[i][0] + s * (c[i-1][0] - c[i][0]), z: c[i][1] + s * (c[i-1][1] - c[i][1]), k: i };
       }
     }
-    drawText(o, g, outer, S, zMid);
-    fitCamera(g, S);
+    return null;
+  }
+  // value at height z on a polyline whose z rises with the index (vals = per-point values, default r)
+  function interp(pts, z, vals){
+    var n = pts.length, lo = 0, hi = n - 1;
+    function v(i){ return vals ? vals[i] : pts[i][0]; }
+    if (z <= pts[0][1]) return v(0);
+    if (z >= pts[n - 1][1]) return v(n - 1);
+    while (hi - lo > 1){ var m = (lo + hi) >> 1; if (pts[m][1] <= z) lo = m; else hi = m; }
+    var t = (z - pts[lo][1]) / ((pts[hi][1] - pts[lo][1]) || 1);
+    return v(lo) + t * (v(hi) - v(lo));
+  }
+  // point where segment a (outside the lip circle) -> b (inside) crosses it
+  function circleHit(P, a, b){
+    var lo = 0, hi = 1;
+    for (var i = 0; i < 30; i++){
+      var m = (lo + hi) / 2, r = a[0] + m * (b[0] - a[0]), z = a[1] + m * (b[1] - a[1]);
+      if (Math.hypot(r - P.rc, z - P.zc) > P.lipR) lo = m; else hi = m;
+    }
+    return [a[0] + lo * (b[0] - a[0]), a[1] + lo * (b[1] - a[1])];
   }
 
-  var tCanvas = document.createElement('canvas'); tCanvas.width = 1024; tCanvas.height = 128;
-  var tCtx = tCanvas.getContext('2d'), tTex = null;
-  function drawText(o, g, outer, S, zMid){
+  function build(o){
+    var T = o.T_WALL, P = { T:T, N:o.RIB_N };
+    P.style = (o.styleChoice === 'NONE' || !(o.RIB_N > 0)) ? 'NONE' : o.styleChoice;
+    P.rSi = o.D_TB_OUT / 2; P.rSo = P.rSi + T; P.rBore = o.D_TB_IN / 2; P.rWo = P.rBore + T;
+    P.zSh = E.SOCKET_CH + o.SOCKET_L;
+    P.flat = E.SHOULDER_ANG <= 0;
+    P.zW0 = P.zSh + (P.flat ? 0 : (P.rSi - P.rBore) * Math.tan(E.SHOULDER_ANG * DEG));
+    P.zTop = P.zSh + o.HORN_L; P.lipR = (T + E.LIP_EXTRA) / 2;
+    P.rc = o.D_OUT_TOP / 2 - P.lipR; P.zc = P.zTop - P.lipR; P.r0c = P.rBore + T / 2;
+    var cp = E.CURVE_P, cq = E.CURVE_Q;
+    while (minBend(curvePts(P, 60, cp, cq)) < T / 2 + 2 && cp < 30) cp *= 1.2;   // FixCurve
+    var cen = curvePts(P, 150, cp, cq), n = cen.length, k;
+    P.nIn = leftNormals(cen);
+    P.out = offset(cen, -T / 2); P.inn = offset(cen, T / 2);
+    var sO = arcLen(P.out), sI = arcLen(P.inn);
+
+    // support fill under the lip
+    var a = (90 - E.OVH_ANG) * DEG, dr = Math.cos(a), dz = Math.sin(a);
+    P.tr = P.rc + P.lipR * Math.sin(a); P.tz = P.zc - P.lipR * Math.cos(a);
+    var fm = lineHit(offset(cen, -(T / 2 - 0.5)), P.tr, P.tz, dr, dz);
+    P.fillZ = fm ? fm.z : 1e30;                                   // FillStartZ
+    P.fill = lineHit(P.out, P.tr, P.tz, dr, dz);
+
+    // socket + shoulder (BuildBase) and the shoulder ring (BuildBead)
+    P.zSock = P.flat ? P.zSh + T : (P.rWo >= P.rSi ? P.zSh : P.zW0);
+    P.bead = E.BEAD_H > 0;
+    if (P.bead){
+      P.rt = P.rSo + E.BEAD_H; P.z3 = P.zSh + E.BEAD_H * Math.tan((90 - E.OVH_ANG) * DEG);
+      P.z4 = P.z3 + E.BEAD_FLAT; P.ri = P.rWo - 0.5;
+      P.z5 = P.z4 + (P.rt - P.ri) * Math.tan((90 - E.BEAD_TOP_ANG) * DEG);
+    }
+    P.ringTop = P.bead ? P.z5 : (P.flat ? P.zSh + T : P.zW0);     // RingTopZ
+
+    // ribs: height per wall point (hIn > 0 = rib into the bore, hIn < 0 = groove into the wall)
+    P.hOut = []; P.hIn = [];
+    for (k = 0; k < n; k++){ P.hOut.push(0); P.hIn.push(0); }
+    P.zGuide = P.zW0;
+    if (P.style !== 'NONE'){
+      var flute = P.style === 'FLUTE', H = flute ? o.GROOVE_D : o.RIB_H;  // FLUTE: outer ridge = groove depth
+      P.w = flute ? E.GROOVE_W_RATIO * o.GROOVE_D / Math.sqrt(3) : H / Math.sqrt(3);
+      var pa = offset(cen, T / 2 + H), zl = flute ? P.fillZ - H - 2 : 1e30, i1 = 0;   // RibEnd
+      for (k = 0; k < n; k++) if (cen[k][0] <= P.rc - E.RIB_END_GAP && pa[k][1] <= P.zTop - 0.5 && cen[k][1] <= zl) i1 = k;
+      var topJ = function(s){ var j = i1 - 1; while (j > 0 && s[i1] - s[j] < E.RIB_RAMP_TOP) j--; return Math.max(j, 0); };
+      var ribF = function(s, k, jt, noBottom){                  // RampRibs: both ends fade to 0
+        if (k > i1) return 0;
+        var f = noBottom ? 1 : Math.min(1, s[k] / E.RIB_RAMP_BOT);
+        if (k > jt) f = Math.min(f, (s[i1] - s[k]) / ((s[i1] - s[jt]) || 1));
+        return Math.max(0, f);
+      };
+      if (!flute){
+        var jt = topJ(sI);
+        for (k = 0; k < n; k++) P.hIn[k] = H * ribF(sI, k, jt, false);
+        P.zGuide = P.inn[i1][1];
+      } else {
+        // outer ridge, starting inside the shoulder ring when it fits (RidgeStartZ)
+        var zs = -1;
+        if (P.bead && P.rWo + H <= P.rSo + E.BEAD_H - 0.3 && (P.z3 + P.z4) / 2 >= P.zW0 + 0.5) zs = (P.z3 + P.z4) / 2;
+        var jo = topJ(sO);
+        for (k = 0; k < n; k++) P.hOut[k] = (zs > 0 && P.out[k][1] < zs) ? 0 : H * ribF(sO, k, jo, zs > 0);
+        // inner groove up to just before the lip roll (BuildGroove)
+        var ji = topJ(sI), ge = i1;
+        for (k = 0; k < n; k++) if (Math.hypot(P.inn[k][0] - P.rc, P.inn[k][1] - P.zc) > P.lipR + 1.5) ge = k;
+        if (ge <= ji + 1) ge = i1;
+        for (k = 0; k <= ge; k++){
+          var tb = sI[k] < E.RIB_RAMP_BOT ? sI[k] / E.RIB_RAMP_BOT : 1;
+          var tt = k > ji ? Math.max(0, (sI[ge] - sI[k]) / ((sI[ge] - sI[ji]) || 1)) : 1;
+          var d = (o.GROOVE_D + 0.3) * Math.min(tb, tt) - 0.3;
+          d = Math.min(d, T - 1 + H * ribF(sI, k, ji, false));
+          P.hIn[k] = -Math.max(0, d);
+        }
+        P.zGuide = P.inn[ge][1];
+      }
+      P.twist = (o.FLEX_ANG || 0) * DEG * (o.TWIST_DIR === 'CW' ? -1 : 1);   // + = CCW seen from the top
+    }
+    P.zLo = E.FLEX_TRIM1; P.zHi = P.zTop - E.FLEX_TRIM2;
+    P.text = textLayout(o, P);
+    return P;
+  }
+
+  // BuildText: height, baseline (kept clear of the shoulder ring), radius and width
+  function textLayout(o, P){
+    var t = o.WRAP_TEXT_IN;
+    if (!t) return null;
+    var th = E.WRAP_H > 0 ? E.WRAP_H : 3.5;
+    if (hasThai(t) && th < E.WRAP_H_TH) th = E.WRAP_H_TH;
+    var zb = E.WRAP_Z;
+    if (zb - 0.4 * th < P.ringTop + 1) zb = P.ringTop + 1 + 0.4 * th;
+    var rT = P.out[0][0];
+    P.out.forEach(function(p){ if (p[1] <= zb + th / 2) rT = p[0]; });
+    var w = textWidth(t, th), wmax = 0.9 * Math.PI * rT, shrunk = false;
+    if (w > wmax){ th *= wmax / w; w = wmax; shrunk = hasThai(t) && th < E.WRAP_H_TH - 0.05; }
+    return { text:t, th:th, zb:zb, rT:rT, w:w, shrunk:shrunk };
+  }
+
+  function twistAt(P, z){ return P.twist ? P.twist * Math.max(0, Math.min(1, (z - P.zLo) / ((P.zHi - P.zLo) || 1))) : 0; }
+  // 0..1 across one rib / groove (concave-sided triangle), rib k centred at 2*pi*k/N + twist
+  function bump(P, phi, z, r){
+    var pitch = 2 * Math.PI / P.N, u = (phi - twistAt(P, z)) / pitch, fr = u - Math.round(u);
+    var x = Math.abs(fr * pitch * r) / P.w;
+    if (x >= 1) return 0;
+    x = (Math.sqrt(x * x + 0.0225) - 0.15) / (Math.sqrt(1.0225) - 0.15);   // slightly rounded tip: no saw teeth between segments
+    return Math.pow(Math.max(0, 1 - x), 1.35);
+  }
+
+  // closed (r, z) outline of the part, bottom outside -> up -> over the lip -> down the bore
+  // t: 0 fixed, 1 outer wall (ridge), 2 lower outside (max of socket / ring / wall + ridge), 3 inner wall (rib / groove)
+  function outline(P){
+    var v = [];
+    function fixed(r, z){ v.push({ t:0, r:r, z:z }); }
+    function wallOut(z){ return z < P.zW0 ? -1e9 : interp(P.out, z); }
+    function others(z){
+      var r = -1e9;
+      if (z <= P.zSock) r = P.rSo;
+      if (z >= P.zSh && z <= P.zW0) r = Math.max(r, P.rWo);
+      if (P.bead && z >= P.zSh && z <= P.z5){
+        var rb = z <= P.z3 ? P.rSo + (P.rt - P.rSo) * (z - P.zSh) / ((P.z3 - P.zSh) || 1)
+               : z <= P.z4 ? P.rt : P.rt - (P.rt - P.ri) * (z - P.z4) / ((P.z5 - P.z4) || 1);
+        r = Math.max(r, rb);
+      }
+      return r;
+    }
+    P.outerAt = function(z){ return Math.max(others(z), wallOut(z)); };
+
+    fixed(P.rSi + E.SOCKET_CH, 0);
+    var zLow = Math.max(P.ringTop, P.zSock, P.zW0) + 1.5, zz = [], z;
+    for (z = 0; z < zLow; z += 0.4) zz.push(z);
+    [P.zSock, P.zSh, P.zW0, P.z3, P.z4, P.z5].forEach(function(b){ if (b > 0 && b < zLow) zz.push(b - 0.01, b + 0.01); });
+    zz.push(zLow);
+    zz.sort(function(a, b){ return a - b; });
+    zz.forEach(function(z){
+      var rf = others(z), rw = wallOut(z);
+      v.push({ t:2, r:Math.max(rf, rw), z:z, rf:rf, rw:rw, h:rw > 0 ? interp(P.out, z, P.hOut) : 0 });
+    });
+
+    var k, top = P.fill, a0, a1, q;
+    for (k = 0; k < P.out.length; k++){
+      var p = P.out[k];
+      if (p[1] <= zLow) continue;
+      if (top && k >= top.k) break;
+      if (!top && Math.hypot(p[0] - P.rc, p[1] - P.zc) < P.lipR) break;
+      v.push({ t:1, r:p[0], z:p[1], k:k, nr:-P.nIn[k][0], nz:-P.nIn[k][1] });
+    }
+    if (top){ fixed(top.r, top.z); fixed(P.tr, P.tz); a0 = Math.atan2(P.tz - P.zc, P.tr - P.rc); }
+    else { q = circleHit(P, P.out[k - 1], P.out[k]); fixed(q[0], q[1]); a0 = Math.atan2(q[1] - P.zc, q[0] - P.rc); }
+
+    var ki = P.inn.length - 1;
+    while (ki > 0 && Math.hypot(P.inn[ki][0] - P.rc, P.inn[ki][1] - P.zc) <= P.lipR) ki--;
+    q = circleHit(P, P.inn[ki], P.inn[Math.min(ki + 1, P.inn.length - 1)]);
+    a1 = Math.atan2(q[1] - P.zc, q[0] - P.rc);
+    while (a1 <= a0) a1 += 2 * Math.PI;
+    var steps = Math.max(2, Math.ceil((a1 - a0) / (7 * DEG)));
+    for (var s = 1; s < steps; s++){
+      var an = a0 + (a1 - a0) * s / steps;
+      fixed(P.rc + P.lipR * Math.cos(an), P.zc + P.lipR * Math.sin(an));
+    }
+    fixed(q[0], q[1]);
+    for (k = ki; k >= 0; k--) v.push({ t:3, r:P.inn[k][0], z:P.inn[k][1], k:k, nr:P.nIn[k][0], nz:P.nIn[k][1] });
+    fixed(P.rSi, P.zSh);
+    fixed(P.rSi, E.SOCKET_CH);
+    fixed(P.rSi + E.SOCKET_CH, 0);
+
+    // repeat the points at sharp corners so the shading stays crisp there
+    var res = [v[0]];
+    for (var i = 1; i < v.length - 1; i++){
+      var ax = v[i].r - v[i-1].r, ay = v[i].z - v[i-1].z, bx = v[i+1].r - v[i].r, by = v[i+1].z - v[i].z;
+      var la = Math.hypot(ax, ay), lb = Math.hypot(bx, by);
+      res.push(v[i]);
+      if (la > 1e-6 && lb > 1e-6 && (ax * bx + ay * by) / (la * lb) < Math.cos(35 * DEG)) res.push(v[i]);
+    }
+    res.push(v[v.length - 1]);
+    return res;
+  }
+
+  /* ---------- 3D preview ---------- */
+  var SC = 1 / 25, SEG = 320;                                  // world units per mm, segments round
+  var canvas = $('canvas'), plate = $('plate');
+  var renderer, scene, camera, group, bodyMesh, cutMesh, textMesh, ghostMesh;
+  var matBody, matText, matCut, matGhost, clipPlane, cutOn = false, cur = null, pending = null;
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var HOME = { az:0.35, pol:1.0 };
+  var view = { az:HOME.az, pol:HOME.pol, zoom:1, dist:10, auto:!reduced };
+
+  // revolved outline with ribs / grooves, in mm (x, height, z); no three.js needed (also used for the volume)
+  function bodyArrays(P, sil){
+    var M = SEG, V = sil.length, ribs = P.style !== 'NONE';
+    var pos = new Float64Array(V * (M + 1) * 3), sn = [], cs = [], i, j;
+    for (j = 0; j <= M; j++){ sn.push(Math.sin(2 * Math.PI * j / M)); cs.push(Math.cos(2 * Math.PI * j / M)); }
+    for (i = 0; i < V; i++){
+      var s = sil[i];
+      for (j = 0; j <= M; j++){
+        var phi = 2 * Math.PI * j / M, r = s.r, z = s.z, b;
+        if (ribs){
+          if (s.t === 2){
+            var rw = s.rw;
+            if (s.h > 0){ b = bump(P, phi, z, rw); rw += s.h * b; }
+            r = Math.max(s.rf, rw);
+          } else if (s.t === 1 || s.t === 3){
+            var h = s.t === 1 ? P.hOut[s.k] : P.hIn[s.k];
+            if (h){ b = bump(P, phi, z, s.r); if (b){ r += s.nr * h * b; z += s.nz * h * b; } }
+          }
+        }
+        var ix = (i * (M + 1) + j) * 3;
+        pos[ix] = r * sn[j]; pos[ix + 1] = z; pos[ix + 2] = r * cs[j];
+      }
+    }
+    return { pos:pos, idx:gridIndex(V - 1, M), rows:V, cols:M + 1, seam:true };
+  }
+  // two triangles per grid cell; a -> b = next column, a -> c = next row (normals point out of the part)
+  function gridIndex(nr, nc){
+    var idx = new Uint32Array(nr * nc * 6), p = 0;
+    for (var i = 0; i < nr; i++) for (var j = 0; j < nc; j++){
+      var a = i * (nc + 1) + j, b = a + 1, c = a + nc + 1, d = c + 1;
+      idx[p++] = a; idx[p++] = b; idx[p++] = c;
+      idx[p++] = b; idx[p++] = d; idx[p++] = c;
+    }
+    return idx;
+  }
+  // closed mesh volume (divergence theorem), mm3
+  function meshVolume(a){
+    var p = a.pos, x = a.idx, v = 0;
+    for (var t = 0; t < x.length; t += 3){
+      var i = x[t] * 3, j = x[t + 1] * 3, k = x[t + 2] * 3;
+      v += p[i] * (p[j + 1] * p[k + 2] - p[j + 2] * p[k + 1]) - p[i + 1] * (p[j] * p[k + 2] - p[j + 2] * p[k])
+         + p[i + 2] * (p[j] * p[k + 1] - p[j + 1] * p[k]);
+    }
+    return Math.abs(v) / 6;
+  }
+  // volume of the plain revolved outline (no ribs): sum of cone frustums, mm3
+  function outlineVolume(sil){
+    var v = 0;
+    for (var i = 0; i < sil.length - 1; i++){
+      var a = sil[i], b = sil[i + 1];
+      v += (b.z - a.z) * (a.r * a.r + a.r * b.r + b.r * b.r);
+    }
+    return Math.abs(v) * Math.PI / 3;
+  }
+  // print layers: cross-section area of each layer (slice of the outline at mid-layer height), mm2
+  function layerAreas(sil, zTop, lh){
+    var n = Math.ceil(zTop / lh), sum = 0;
+    for (var l = 0; l < n; l++){
+      var z = (l + 0.5) * lh, rs = [];
+      for (var i = 0; i < sil.length - 1; i++){
+        var a = sil[i], b = sil[i + 1];
+        if ((a.z <= z && b.z > z) || (b.z <= z && a.z > z)) rs.push(a.r + (z - a.z) / (b.z - a.z) * (b.r - a.r));
+      }
+      rs.sort(function(p, q){ return p - q; });
+      for (var k = 0; k + 1 < rs.length; k += 2) sum += Math.PI * (rs[k + 1] * rs[k + 1] - rs[k] * rs[k]);
+    }
+    return { n:n, sum:sum };
+  }
+
+  // raised text: the glyphs (drawn on a canvas) push a fine grid out of the neck by WRAP_T, same material as the part.
+  // Off the glyphs the grid sits 0.3 mm inside the wall, so only the letters show.
+  function textRelief(P){
+    var Ly = P.text;
+    if (!Ly) return null;
+    var h = Ly.th, zA = Ly.zb - 0.8 * h, zB = Ly.zb + 2.2 * h, len = Ly.w + 4, ht = zB - zA, arc = len / Ly.rT;
+    var cell = Math.max(0.08, Math.sqrt(len * ht / 90000)), nu = Math.ceil(len / cell), nv = Math.ceil(ht / cell);
+    var ppm = 2 / cell, cv = document.createElement('canvas');
+    cv.width = Math.ceil(len * ppm); cv.height = Math.ceil(ht * ppm);
+    var c = cv.getContext('2d'), W = cv.width, H = cv.height;
+    c.fillStyle = '#000'; c.fillRect(0, 0, W, H);
+    c.font = '700 ' + (h / (hasThai(Ly.text) ? 0.62 : 0.72) * ppm) + 'px Sarabun, "Noto Sans Thai", sans-serif';
+    var mw = c.measureText(Ly.text).width || 1;
+    if ('filter' in c) c.filter = 'blur(' + (ppm * 0.07).toFixed(2) + 'px)';   // slightly sloped letter sides
+    c.translate(W / 2, (zB - Ly.zb) * ppm);
+    c.scale(Ly.w * ppm / mw, 1);                                  // same width as the macro's estimate
+    c.textAlign = 'center'; c.textBaseline = 'alphabetic'; c.fillStyle = '#fff';
+    c.fillText(Ly.text, 0, 0);
+    var img = c.getImageData(0, 0, W, H).data;
+    function g(x, y){ return img[(y * W + x) * 4] / 255; }
+    function mask(x, y){
+      x = Math.max(0, Math.min(W - 1.001, x)); y = Math.max(0, Math.min(H - 1.001, y));
+      var x0 = x | 0, y0 = y | 0, fx = x - x0, fy = y - y0;
+      return (g(x0, y0) * (1 - fx) + g(x0 + 1, y0) * fx) * (1 - fy) + (g(x0, y0 + 1) * (1 - fx) + g(x0 + 1, y0 + 1) * fx) * fy;
+    }
+    var pos = new Float64Array((nu + 1) * (nv + 1) * 3), area = 0, T = E.WRAP_T, i, j;
+    for (i = 0; i <= nv; i++){
+      var z = zA + ht * i / nv, rs = P.outerAt(z), py = (zB - z) * ppm;
+      for (j = 0; j <= nu; j++){
+        var m = mask(j / nu * W, py), phi = -arc / 2 + arc * j / nu, r = rs - 0.3 + m * (T + 0.3), ix = (i * (nu + 1) + j) * 3;
+        area += m;
+        pos[ix] = r * Math.sin(phi); pos[ix + 1] = z; pos[ix + 2] = r * Math.cos(phi);
+      }
+    }
+    return { pos:pos, idx:gridIndex(nv, nu), rows:nv + 1, cols:nu + 1, area:area * (len / nu) * (ht / nv) };
+  }
+
+  // volume -> grams; layers (0.2 mm, cross-section / 0.4 mm line) -> path length -> time at 150 mm/s
+  function estimate(P, body, rel){
+    var vol = meshVolume(body) + (rel ? rel.area * E.WRAP_T : 0);
+    var la = layerAreas(P.sil, P.zTop, C.LAYER_H);
+    // ribs, grooves and text are not in the outline slices: spread their volume over the layers
+    var path = (la.sum + (vol - outlineVolume(P.sil)) / C.LAYER_H) / C.LINE_W;
+    return { vol:vol, grams:vol / 1000 * C.DENSITY, layers:la.n, path:path, hours:path / C.SPEED / 3600 };   // x time factor in quoteOf
+  }
+
+  function toGeometry(a, zMid){
+    var n = a.pos.length, w = new Float32Array(n);
+    for (var i = 0; i < n; i += 3){ w[i] = a.pos[i] * SC; w[i + 1] = (a.pos[i + 1] - zMid) * SC; w[i + 2] = a.pos[i + 2] * SC; }
+    var geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(w, 3));
+    geo.setIndex(new THREE.BufferAttribute(a.idx, 1));
+    geo.computeVertexNormals();
+    if (a.seam){                                                 // close the seam at 0 / 360 deg
+      var nm = geo.attributes.normal.array, M = a.cols - 1;
+      for (var r = 0; r < a.rows; r++){
+        var a0 = r * a.cols * 3, a1 = (r * a.cols + M) * 3;
+        for (var c3 = 0; c3 < 3; c3++){ var m = (nm[a0 + c3] + nm[a1 + c3]) / 2; nm[a0 + c3] = m; nm[a1 + c3] = m; }
+      }
+    }
+    return geo;
+  }
+
+  // one model change: geometry -> price, then the 3D meshes (if WebGL is there)
+  function processJob(job){
+    var o = job.o, P = job.P;
+    P.sil = outline(P);
+    var body = bodyArrays(P, P.sil), rel = textRelief(P);
+    stats = estimate(P, body, rel);
+    renderQuote(readOrder());
+    if (scene) rebuild(o, P, body, rel);
+  }
+
+  function rebuild(o, P, body, rel){
+    var geo = toGeometry(body, P.zTop / 2);
+    if (bodyMesh){ group.remove(bodyMesh); group.remove(cutMesh); bodyMesh.geometry.dispose(); }
+    bodyMesh = new THREE.Mesh(geo, matBody);
+    cutMesh = new THREE.Mesh(geo, matCut); cutMesh.visible = cutOn;
+    group.add(bodyMesh); group.add(cutMesh);
+    var hex = colorOf(o.color).hex;
+    matBody.color.set(hex);
+    // text: same colour, a touch lighter (darker on very light colours) so it reads but still looks like one part
+    var tc = new THREE.Color(hex), lum = 0.299 * tc.r + 0.587 * tc.g + 0.114 * tc.b;
+    matText.color.copy(tc.lerp(new THREE.Color(lum > 0.8 ? 0x000000 : 0xffffff), lum > 0.8 ? 0.12 : 0.22));
+    matCut.color.set(new THREE.Color(hex).lerp(new THREE.Color(0xc75a1e), 0.65));
     if (textMesh){ group.remove(textMesh); textMesh.geometry.dispose(); textMesh = null; }
-    var t = o.WRAP_TEXT_IN; if (!t || !tTex) return;
-    var E = CONFIG.ENG, h = hasThai(t) ? E.WRAP_H_TH : 3.5, r = g.rWo;
-    var w = textWidth(t, h), wmax = 0.9 * Math.PI * r;
-    if (w > wmax){ h *= wmax / w; w = wmax; }
-    var z = Math.max(E.WRAP_Z, g.zSh + g.T + 6 + 0.4 * h);
-    tCtx.clearRect(0, 0, 1024, 128);
-    tCtx.fillStyle = '#f3efe6'; tCtx.textAlign = 'center'; tCtx.textBaseline = 'middle';
-    tCtx.font = '700 84px Sarabun, sans-serif';
-    tCtx.fillText(t, 512, 66, 1000);
-    tTex.needsUpdate = true;
-    var arc = (w + 6) / r, bandH = h * 1.9;
-    var geo = new THREE.CylinderGeometry((r + 0.3) * S, (r + 0.3) * S, bandH * S, 64, 1, true, Math.PI / 2 - arc / 2, arc);
-    textMesh = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ map:tTex, transparent:true, depthWrite:false, side:THREE.DoubleSide }));
-    textMesh.position.y = (z + h * 0.35 - zMid) * S;
-    group.add(textMesh);
+    if (rel){ textMesh = new THREE.Mesh(toGeometry(rel, P.zTop / 2), matText); group.add(textMesh); }
+    // throttle body (shown with the air flow): sits in the socket up to the shoulder
+    if (ghostMesh){ group.remove(ghostMesh); ghostMesh.geometry.dispose(); }
+    var gl = P.zSh + 30;
+    ghostMesh = new THREE.Mesh(new THREE.CylinderGeometry(P.rSi * SC, P.rSi * SC, gl * SC, 64, 1, true), matGhost);
+    ghostMesh.position.y = ((P.zSh - 30) / 2 - P.zTop / 2) * SC;
+    ghostMesh.visible = flow.on;
+    group.add(ghostMesh);
+    cur = P;
+    fitCamera(P);
   }
 
-  function fitCamera(g, S){
-    var halfH = g.zTop / 2 * S, maxR = Math.max(g.rc + g.lipR, g.rSo) * S;
-    var vfov = camera.fov * Math.PI / 180 / 2, hfov = Math.atan(Math.tan(vfov) * camera.aspect);
-    var d = Math.max(halfH / Math.tan(vfov), maxR / Math.tan(hfov), 2) * 1.5;
-    // from above, so the ribs inside the mouth are visible
-    camera.position.set(0, halfH + d * 0.55, d * 0.85); camera.lookAt(0, -halfH * 0.15, 0);
+  function fitCamera(P){
+    var halfH = P.zTop / 2 * SC, maxR = (P.rc + P.lipR) * SC, rad = Math.hypot(halfH, maxR);
+    var vf = camera.fov * DEG / 2, hf = Math.atan(Math.tan(vf) * camera.aspect);
+    view.dist = rad / Math.sin(Math.min(vf, hf)) * 0.98;
+  }
+  function placeCamera(){
+    var d = view.dist * view.zoom, sp = Math.sin(view.pol);
+    camera.position.set(d * sp * Math.sin(view.az), d * Math.cos(view.pol), d * sp * Math.cos(view.az));
+    camera.lookAt(0, 0, 0);
+    // section plane through the axis, facing away from the camera (keeps the far half)
+    clipPlane.normal.set(-Math.sin(view.az), 0, -Math.cos(view.az));
+  }
+
+  function setCut(on){
+    cutOn = on;
+    $('cutBtn').setAttribute('aria-pressed', String(on));
+    [matBody, matText, matCut, matGhost].forEach(function(m){
+      m.clippingPlanes = on ? [clipPlane] : null; m.needsUpdate = true;
+    });
+    if (cutMesh) cutMesh.visible = on;
+  }
+
+  /* ---------- air flow (illustration: continuity v ~ 1/r^2, sink at the mouth, swirl along the ribs) ---------- */
+  var flow = { on:false, n:700, ps:[], lines:null, dots:null, autoCut:false };
+  var V_NECK = 85, V_OUT_MIN = 16, TAIL = 0.11;                  // mm/s, mm/s, s
+  var RAMP = [[0, 0x3d8bfd], [0.35, 0x2fc4d6], [0.7, 0xf2c94c], [1, 0xff6a2a]].map(function(s){ return [s[0], new THREE.Color(s[1])]; });
+
+  function rIn(P, z){ return z <= P.zW0 ? P.rBore : interp(P.inn, Math.min(z, P.zEnter)); }
+  function flowSetup(P){
+    P.zEnter = P.inn[P.inn.length - 1][1] - 0.3;
+    P.zSink = P.zTop - 0.35 * P.rc;
+    P.rSpawn = (P.rc + P.lipR) * 1.15 + 12;
+    P.Q = V_NECK * Math.PI * P.rBore * P.rBore;
+  }
+  function spawnOut(p, P, near){
+    var el = (12 + 73 * Math.random()) * DEG, az = Math.random() * 2 * Math.PI;
+    var rad = P.rSpawn * (near ? 0.3 + 0.7 * Math.random() : 1);
+    p.m = 0; p.x = rad * Math.cos(el) * Math.sin(az); p.y = P.zSink + rad * Math.sin(el); p.z = rad * Math.cos(el) * Math.cos(az);
+    p.jump = true;
+  }
+  function spawnIn(p, P){
+    p.m = 1; p.f = 0.95 * Math.sqrt(Math.random()); p.ph = Math.random() * 2 * Math.PI;
+    p.zz = -14 + Math.random() * (P.zEnter + 14); p.L = 0; p.jump = true;
+  }
+  function smooth(a, b, x){ var t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); }
+  function stepFlow(dt){
+    var P = cur;
+    if (!P.Q) flowSetup(P);
+    var pos = flow.lines.geometry.attributes.position.array, col = flow.lines.geometry.attributes.color.array;
+    var dpos = flow.dots.geometry.attributes.position.array, dcol = flow.dots.geometry.attributes.color.array;
+    var zMid = P.zTop / 2, guide = P.style !== 'NONE' && P.twist, flute = P.style === 'FLUTE', c = new THREE.Color();
+    for (var i = 0; i < flow.n; i++){
+      var p = flow.ps[i], x, y, z, spd;
+      if (p.m === 0){                                            // outside: straight into a sink inside the mouth
+        var dx = -p.x, dy = P.zSink - p.y, dz = -p.z, d = Math.hypot(dx, dy, dz) || 1;
+        spd = Math.max(P.Q / (2 * Math.PI * d * d), V_OUT_MIN);
+        var nx = p.x + dx / d * spd * dt, ny = p.y + dy / d * spd * dt, nz = p.z + dz / d * spd * dt;
+        if (Math.hypot(nx, nz) > P.rc - P.lipR && ny < P.zTop + 1.5) ny = Math.max(ny, Math.min(p.y, P.zTop + 1.5));  // over the lip
+        p.x = nx; p.y = ny; p.z = nz;
+        var rr = Math.hypot(p.x, p.z), R0 = rIn(P, p.y);
+        if (p.y <= P.zEnter && rr < R0){ p.m = 1; p.f = Math.min(0.97, rr / R0); p.ph = Math.atan2(p.x, p.z); p.zz = p.y; p.L = 0; }
+        x = p.x; y = p.y; z = p.z;
+      } else {                                                   // in the bore: follow the wall, speed = flow / area
+        var R = rIn(P, p.zz), Rp = rIn(P, p.zz + 0.5) - rIn(P, p.zz - 0.5);
+        var va = P.Q / (Math.PI * R * R), dzz = -va * dt / Math.sqrt(1 + p.f * p.f * Rp * Rp);
+        p.zz += dzz;
+        var r = p.f * rIn(P, p.zz);
+        if (guide && p.zz > P.zW0 && p.zz < P.zGuide){           // the twisted ribs turn the air near the wall
+          var dphidz = (p.zz > P.zLo && p.zz < P.zHi) ? P.twist / (P.zHi - P.zLo) : 0;
+          var cpl = flute ? smooth(0.4, 0.95, p.f) : smooth(0.55, 0.95, p.f);
+          p.L += (r * r * cpl * dphidz * dzz / dt - p.L) * Math.min(1, 3 * dt);
+        } else p.L *= 1 - 0.08 * dt;                             // below the ribs: swirl kept (spins faster in the neck)
+        var w = p.L / Math.max(r * r, 9);
+        p.ph += w * dt;
+        spd = Math.hypot(va, w * r);
+        x = r * Math.sin(p.ph); y = p.zz; z = r * Math.cos(p.ph);
+        if (p.zz < -14) spawnOut(p, P, false);
+      }
+      var X = x * SC, Y = (y - zMid) * SC, Z = z * SC, o6 = i * 6, o3 = i * 3;
+      if (p.jump || p.px === undefined){ p.px = X; p.py = Y; p.pz = Z; p.jump = false; }
+      var k = TAIL / Math.max(dt, 1e-3), tx = X - (X - p.px) * k, ty = Y - (Y - p.py) * k, tz = Z - (Z - p.pz) * k;
+      var tl = Math.hypot(X - tx, Y - ty, Z - tz), maxL = 10 * SC;
+      if (tl > maxL){ var sc = maxL / tl; tx = X - (X - tx) * sc; ty = Y - (Y - ty) * sc; tz = Z - (Z - tz) * sc; }
+      p.px = X; p.py = Y; p.pz = Z;
+      var t = Math.min(1, spd / (V_NECK * 1.15));
+      for (var g = 1; g < RAMP.length; g++) if (t <= RAMP[g][0]){ c.copy(RAMP[g-1][1]).lerp(RAMP[g][1], (t - RAMP[g-1][0]) / (RAMP[g][0] - RAMP[g-1][0])); break; }
+      pos[o6] = X; pos[o6+1] = Y; pos[o6+2] = Z; pos[o6+3] = tx; pos[o6+4] = ty; pos[o6+5] = tz;
+      col[o6] = c.r; col[o6+1] = c.g; col[o6+2] = c.b; col[o6+3] = c.r * 0.35; col[o6+4] = c.g * 0.35; col[o6+5] = c.b * 0.35;
+      dpos[o3] = X; dpos[o3+1] = Y; dpos[o3+2] = Z; dcol[o3] = c.r; dcol[o3+1] = c.g; dcol[o3+2] = c.b;
+    }
+    flow.lines.geometry.attributes.position.needsUpdate = true; flow.lines.geometry.attributes.color.needsUpdate = true;
+    flow.dots.geometry.attributes.position.needsUpdate = true; flow.dots.geometry.attributes.color.needsUpdate = true;
+  }
+  function flowNoteText(P){
+    var ratio = Math.pow((P.rc - P.lipR) / P.rBore, 2);
+    $('flowNote').textContent = 'ภาพประกอบโดยประมาณ ไม่ใช่ผลคำนวณการไหลจริง · ลมช่วงคอเร็วกว่าที่ปากราว ' + ratio.toFixed(1) + ' เท่า' +
+      (P.style !== 'NONE' && P.twist ? ' · ครีบบิดทำให้ลมหมุนเป็นเกลียวก่อนเข้าเรือนลิ้นเร่ง' : '');
+  }
+  function setFlow(on){
+    if (!cur) return;
+    flow.on = on;
+    $('flowBtn').setAttribute('aria-pressed', String(on));
+    $('legend').hidden = !on; $('flowNote').hidden = !on; $('hint').hidden = on;
+    if (on){
+      flowSetup(cur);
+      flow.ps.forEach(function(p, i){ if (i % 2) spawnOut(p, cur, true); else spawnIn(p, cur); });
+      if (!cutOn){ setCut(true); flow.autoCut = true; }
+    } else if (flow.autoCut){ setCut(false); flow.autoCut = false; }
+    flow.lines.visible = on; flow.dots.visible = on;
+    if (ghostMesh) ghostMesh.visible = on;
   }
 
   function initThree(){
-    if (typeof THREE === 'undefined') { plate.querySelector('.hint').textContent = 'โหลดตัวอย่าง 3 มิติไม่ได้'; return; }
+    if (typeof THREE === 'undefined') { $('hint').textContent = 'โหลดตัวอย่าง 3 มิติไม่ได้'; return; }
     renderer = new THREE.WebGLRenderer({ canvas:canvas, antialias:true, alpha:true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.localClippingEnabled = true;
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera(35, 1, 0.1, 200);
+    scene.add(camera);
     group = new THREE.Group(); scene.add(group);
-    scene.add(new THREE.AmbientLight(0xffffff, 0.55));
-    var key = new THREE.DirectionalLight(0xffffff, 1.0); key.position.set(3, 5, 6); scene.add(key);
-    var rim = new THREE.DirectionalLight(0x9fb8ff, 0.5); rim.position.set(-4, -2, -3); scene.add(rim);
-    matBody = new THREE.MeshStandardMaterial({ color:0x1d1d1f, metalness:0.05, roughness:0.75, side:THREE.DoubleSide });
-    matRib = new THREE.MeshStandardMaterial({ color:0x1d1d1f, metalness:0.05, roughness:0.7 });
-    tTex = new THREE.CanvasTexture(tCanvas); tTex.minFilter = THREE.LinearFilter;
-    canvas.addEventListener('pointerdown', function(e){ dragging = true; autoSpin = false; lastX = e.clientX; canvas.setPointerCapture(e.pointerId); clearTimeout(idle); });
-    canvas.addEventListener('pointermove', function(e){ if (!dragging) return; rotY += (e.clientX - lastX) * 0.01; lastX = e.clientX; });
-    function end(){ dragging = false; clearTimeout(idle); idle = setTimeout(function(){ autoSpin = !window.matchMedia('(prefers-reduced-motion: reduce)').matches; }, 1800); }
+    clipPlane = new THREE.Plane(new THREE.Vector3(0, 0, -1), 0);
+    scene.add(new THREE.HemisphereLight(0xffffff, 0x8a8478, 0.55));
+    var key = new THREE.DirectionalLight(0xffffff, 0.95); key.position.set(2, 3, 1.5); camera.add(key);   // follows the view
+    var rim = new THREE.DirectionalLight(0x9fb8ff, 0.35); rim.position.set(-4, -2, -3); scene.add(rim);
+    matBody = new THREE.MeshStandardMaterial({ color:0x1d1d1f, metalness:0.05, roughness:0.72 });
+    matText = new THREE.MeshStandardMaterial({ color:0x3a3a3d, metalness:0.05, roughness:0.72 });
+    matCut = new THREE.MeshStandardMaterial({ color:0xc75a1e, metalness:0, roughness:0.9, side:THREE.BackSide });
+    matGhost = new THREE.MeshStandardMaterial({ color:0x9aa3ad, transparent:true, opacity:0.22, depthWrite:false, side:THREE.DoubleSide });
+
+    var lg = new THREE.BufferGeometry(), dg = new THREE.BufferGeometry();
+    lg.setAttribute('position', new THREE.BufferAttribute(new Float32Array(flow.n * 6), 3));
+    lg.setAttribute('color', new THREE.BufferAttribute(new Float32Array(flow.n * 6), 3));
+    dg.setAttribute('position', new THREE.BufferAttribute(new Float32Array(flow.n * 3), 3));
+    dg.setAttribute('color', new THREE.BufferAttribute(new Float32Array(flow.n * 3), 3));
+    flow.lines = new THREE.LineSegments(lg, new THREE.LineBasicMaterial({ vertexColors:true, transparent:true, opacity:0.9 }));
+    flow.dots = new THREE.Points(dg, new THREE.PointsMaterial({ vertexColors:true, size:3, sizeAttenuation:false }));
+    flow.lines.frustumCulled = false; flow.dots.frustumCulled = false;
+    flow.lines.visible = false; flow.dots.visible = false;
+    scene.add(flow.lines); scene.add(flow.dots);
+    for (var i = 0; i < flow.n; i++) flow.ps.push({});
+
+    // orbit: drag = rotate any direction, wheel / pinch = zoom, double click = start view
+    var ptrs = {}, pinch0 = 0, zoom0 = 1;
+    function ptrList(){ return Object.keys(ptrs).map(function(k){ return ptrs[k]; }); }
+    function spread(){ var l = ptrList(); return l.length < 2 ? 0 : Math.hypot(l[0].x - l[1].x, l[0].y - l[1].y); }
+    canvas.addEventListener('pointerdown', function(e){
+      canvas.setPointerCapture(e.pointerId);
+      ptrs[e.pointerId] = { x:e.clientX, y:e.clientY };
+      view.auto = false;
+      if (ptrList().length === 2){ pinch0 = spread(); zoom0 = view.zoom; }
+    });
+    canvas.addEventListener('pointermove', function(e){
+      var p = ptrs[e.pointerId];
+      if (!p) return;
+      var n = ptrList().length, dx = e.clientX - p.x, dy = e.clientY - p.y;
+      p.x = e.clientX; p.y = e.clientY;
+      if (n === 1){
+        view.az -= dx * 0.009;
+        view.pol = Math.max(0.06, Math.min(Math.PI - 0.06, view.pol - dy * 0.009));
+      } else if (n === 2 && pinch0){
+        view.zoom = Math.max(0.35, Math.min(3, zoom0 * pinch0 / (spread() || 1)));
+      }
+    });
+    function end(e){ delete ptrs[e.pointerId]; pinch0 = 0; }
     canvas.addEventListener('pointerup', end); canvas.addEventListener('pointercancel', end);
+    canvas.addEventListener('wheel', function(e){
+      e.preventDefault(); view.auto = false;
+      view.zoom = Math.max(0.35, Math.min(3, view.zoom * Math.exp(e.deltaY * 0.0012)));
+    }, { passive:false });
+    function home(){ view.az = HOME.az; view.pol = HOME.pol; view.zoom = 1; }
+    canvas.addEventListener('dblclick', home);
+    $('resetBtn').addEventListener('click', home);
+    $('cutBtn').addEventListener('click', function(){ flow.autoCut = false; setCut(!cutOn); });
+    $('flowBtn').addEventListener('click', function(){ setFlow(!flow.on); });
+
     window.addEventListener('resize', resize);
     resize();
-    (function loop(){ requestAnimationFrame(loop); if (autoSpin) rotY += 0.004; group.rotation.y = rotY; renderer.render(scene, camera); })();
+    var last = performance.now();
+    (function loop(now){
+      requestAnimationFrame(loop);
+      var dt = Math.min(0.05, Math.max(0, ((now || last) - last) / 1000)); last = now || last;
+      if (pending){ var job = pending; pending = null; processJob(job); }
+      if (view.auto) view.az += 0.25 * dt;
+      placeCamera();
+      if (flow.on && cur) stepFlow(dt);
+      renderer.render(scene, camera);
+    })();
   }
   function resize(){
     if (!renderer) return;
@@ -629,6 +1404,7 @@ var CONFIG = {
   $('offlineNote').hidden = !!CONFIG.ORDER_URL;
   $('orderForm').addEventListener('submit', function(ev){
     ev.preventDefault();
+    if (pending){ var job = pending; pending = null; processJob(job); }   // price of the values on screen
     var o = readOrder(), errs = validate(o, true);
     if (errs.length){
       $('issues').innerHTML = errs.map(function(s){ return '<li>' + s + '</li>'; }).join('');
@@ -640,14 +1416,14 @@ var CONFIG = {
       customer:o.customer, contact:o.contact, bike:o.bike, note:o.note, qty:o.qty,
       color:colorOf(o.color).label, priceEach:p.each, priceTotal:p.total, website:o.website,
       D_TB_OUT:o.D_TB_OUT, D_TB_IN:o.D_TB_IN, HORN_L:o.HORN_L, D_OUT_TOP:o.D_OUT_TOP,
-      RIB_STYLE:o.RIB_STYLE, RIB_N:o.RIB_N, FLEX_ANG:o.FLEX_ANG, TWIST_DIR:o.TWIST_DIR, WRAP_TEXT_IN:o.WRAP_TEXT_IN
+      RIB_STYLE:o.RIB_STYLE, RIB_N:o.RIB_N, FLEX_ANG:o.FLEX_ANG, TWIST_DIR:o.TWIST_DIR, WRAP_TEXT_IN:o.WRAP_TEXT_IN,
+      GROOVE_D:o.GROOVE_D, RIB_H:o.RIB_H, T_WALL:o.T_WALL, SOCKET_L:o.SOCKET_L, material:C.MATERIAL
     };
     var btn = $('submitBtn'); btn.disabled = true; btn.textContent = 'กำลังส่ง...';
     function finish(ref){
       var mine = loadMine();
-      mine.push({ ref:ref, date:new Date().toISOString(), size:'Ø' + o.D_TB_OUT + '/' + o.D_TB_IN + ' ยาว ' + o.HORN_L + ' ปาก Ø' + o.D_OUT_TOP,
-        style: o.styleChoice === 'NONE' ? 'ไม่มีครีบ' : (o.RIB_N + (o.styleChoice === 'FLUTE' ? ' ร่อง' : ' ครีบ')),
-        text:o.WRAP_TEXT_IN, color:colorOf(o.color).label, qty:o.qty, total:p.total });
+      mine.push({ ref:ref, date:new Date().toISOString(), size:'Ø' + o.D_TB_OUT + '/' + o.D_TB_IN + ' สวม ' + o.SOCKET_L + ' ยาว ' + o.HORN_L + ' ปาก Ø' + o.D_OUT_TOP + ' ผนัง ' + o.T_WALL,
+        style:styleText(o), text:o.WRAP_TEXT_IN, color:C.MATERIAL + ' ' + colorOf(o.color).label, qty:o.qty, total:p.total });
       saveMine(mine); renderMine();
       $('orderForm').hidden = true; $('doneBox').hidden = false;
       $('doneRef').textContent = ref; $('doneContact').textContent = o.contact;
@@ -672,6 +1448,8 @@ var CONFIG = {
   initThree();
   update();
   renderMine();
+  // redraw the text once the Thai web font is loaded (canvas text uses it)
+  if (document.fonts && document.fonts.load) document.fonts.load('700 40px Sarabun', 'กขค ABC').then(update, function(){});
 })();
 </script>
 </body>
